@@ -1,0 +1,66 @@
+/* Add borders to main divs. */
+.simulationsDiv{
+
+}
+
+.parametersDiv {
+	border-left: 1px solid;
+}
+
+.form-horizontal {
+	padding-top: 5px;
+}
+
+.collapse {
+	padding-top: 7px;
+}
+
+#simulationSelect {
+    height : 46px;
+    line-height : normal;
+}
+
+.loader {
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+svg {
+display: block;
+  /*margin-left: 10%;
+  margin-right: 10%;
+  width: auto;
+*/
+  margin-left: auto;
+      margin-right: auto;
+    width: 100%;
+
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+
+.runButton {
+    margin: 0;
+    position: absolute;
+    width: 20%;
+    left: 40%;
+    /*transform: translate(0%, -50%);*/
+}
