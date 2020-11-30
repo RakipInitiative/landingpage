@@ -27,6 +27,8 @@ import org.jlibsedml.SEDMLTags
 import org.jlibsedml.SedML
 import org.renjin.script.RenjinScriptEngine
 import org.renjin.script.RenjinScriptEngineFactory
+import java.util.*
+import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
 const val LOCAL_TEST = false // Set true for testing locally with netty.
@@ -75,10 +77,12 @@ fun Application.module() {
         anyHost()
     }
 
+    val appConfiguration = loadConfiguration()
+
     val uploadTimes = mutableMapOf<String, String>()
     val executionTimes = mutableMapOf<String, String>()
-    val timesFileUrl = javaClass.getResource("/static/files/uploadDateTime/model_time_date.csv")
-    File(timesFileUrl.toURI()).readLines().forEach {
+    val timesFile = appConfiguration.getProperty("times_csv")
+    File(timesFile).readLines().forEach {
         val tokens = it.split(",")
         val modelId = tokens[0]
         val modelUploadTime = tokens[2]
@@ -88,10 +92,10 @@ fun Application.module() {
         executionTimes[modelId] = modelExecutionTime
     }
 
-    val filesFolderUrl = javaClass.getResource("/static/files")
-    val modelFiles = File(filesFolderUrl.toURI()).walk().filter { it.isFile && it.extension == "fskx" }.toList()
+    val filesFolder = appConfiguration.getProperty("model_folder")
+    val modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
 
-    val imgFiles = File(javaClass.getResource("/static/plots").toURI()).walk().filter { it.isFile }.toList()
+    val imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile }.toList()
 
     val rawMetadata = loadRawMetadata(modelFiles)
     val processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes)
@@ -379,6 +383,30 @@ fun readModel(modelFile: File): FskModel {
         workingDirectory,
         metadata
     )
+}
+
+private fun loadConfiguration(): Properties {
+
+    val properties = Properties()
+
+    val configFileInUserFolder = File(System.getProperty("user.home"), "landingpage.properties")
+
+    if (configFileInUserFolder.exists()) {
+        configFileInUserFolder.inputStream().use {
+            properties.load(it)
+        }
+    } else {
+        val catalinaFolder = System.getProperty("catalina.home")
+        if (catalinaFolder != null && File(catalinaFolder, "landingpage.properties").exists()) {
+            File(catalinaFolder, "landingpage.properties").inputStream().use {
+                properties.load(it)
+            }
+        } else {
+            error("Configuration file not found")
+        }
+    }
+
+    return properties
 }
 
 private fun readModelScript(modelFile: File): String {
