@@ -31,8 +31,9 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
-const val LOCAL_TEST = false // Set true for testing locally with netty.
-val ENDPOINT = if(LOCAL_TEST) "http://localhost:8080/" else "http://localhost:8080/landingpage/"
+const val LOCAL_TEST = true // Set true for testing locally with netty.
+
+val appConfiguration = loadConfiguration()
 
 data class ModelView(
     val modelName: String,
@@ -77,8 +78,6 @@ fun Application.module() {
         anyHost()
     }
 
-    val appConfiguration = loadConfiguration()
-
     val uploadTimes = mutableMapOf<String, String>()
     val executionTimes = mutableMapOf<String, String>()
     val timesFile = appConfiguration.getProperty("times_csv")
@@ -110,7 +109,7 @@ fun Application.module() {
         val buttonColor = "rgb(83,121,166)"
         val hoverColor = "rgb(130,162,200)"
         val title2 = "FSK-Web"
-        val endpoint = ENDPOINT
+        val endpoint = appConfiguration.getProperty("base_url")
         val metadata = processedMetadata
         val resourcesFolder = if(LOCAL_TEST) "static" else "landingpage/static"
     }
@@ -297,7 +296,7 @@ private fun processMetadata(
             modelType = metadataTree["modelType"].asText(),
             durationTime = executionTimes[modelId] ?: "", // Get durationTime from executionTimes dictionary
             uploadTime = uploadTimes[modelId] ?: "", // Get upload time from uploadTimes dictionary
-            downloadUrl = "$ENDPOINT/download/$index"
+            downloadUrl = "${appConfiguration.getProperty("base_url")}/download/$index"
         )
     }
 
