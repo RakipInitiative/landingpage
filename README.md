@@ -27,15 +27,17 @@ Tomcat started.
 ### Contents of the file
 
 The *landingpage.properties* is a simple Java properties file with the following keys:
-* model_folder: Folder with FSKX models.
-* plot_folder: Folder with SVG model plots.
-* model_time_date.csv: CSV file describing the execution and upload times of the models in the model folder. See more details at [model_time_date.csv](#model_time_date.csv).
+* `model_folder`: Folder with FSKX models.
+* `plot_folder`: Folder with SVG model plots.
+* `model_time_date.csv`: CSV file describing the execution and upload times of the models in the model folder. See more details at [model_time_date.csv](#model_time_datecsv).
+* `base_url`: Url to application.
 
 Example landingpage.properties file:
 ```
 model_folder=/Users/jdoe/my_models/models
 plot_folder=/Users/jdoe/my_models/plots
 times_csv=/Users/jdoe/my_models/model_time_date.csv
+base_url=http://localhost:8080/
 ```
 
 ### model_time_date.csv
