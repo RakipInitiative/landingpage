@@ -149,7 +149,7 @@ fun Application.module() {
                 try {
                     val imgFile = imgFiles.first { it.nameWithoutExtension == imageId }
                     call.response.header("Content-Disposition", "inline")
-                    call.respondFile(imgFile)
+                    call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
