@@ -128,8 +128,7 @@ fun Application.module() {
                     // for the demo: if model is from FSK-Web (starts with 2020) then only download toymodel
                     if(modelFile.name.startsWith("2020") || modelFile.name.startsWith("showcase")
                         || modelFile.name.startsWith("gropin")){
-                        val modelFileUrl ={}.javaClass.getResource("/static/files/toymodel.fskx")
-                        modelFile = File(modelFileUrl.toURI())
+                        modelFile = File(appConfiguration.getProperty("model_folder"), "toymodel.fskx")
                     }
                     call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
                     call.respondFile(modelFile)
