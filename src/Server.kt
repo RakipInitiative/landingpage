@@ -31,7 +31,7 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
-const val LOCAL_TEST = true // Set true for testing locally with netty.
+const val LOCAL_TEST = false // Set true for testing locally with netty.
 
 val appConfiguration = loadConfiguration()
 
