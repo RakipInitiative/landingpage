@@ -31,7 +31,6 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
-const val LOCAL_TEST = false // Set true for testing locally with netty.
 
 val appConfiguration = loadConfiguration()
 
@@ -111,7 +110,11 @@ fun Application.module() {
         val title2 = "FSK-Web"
         val endpoint = appConfiguration.getProperty("base_url")
         val metadata = processedMetadata
-        val resourcesFolder = if(LOCAL_TEST) "static" else "landingpage/static"
+        val resourcesFolder = if(appConfiguration.getProperty("context") != null) {
+            "${appConfiguration.getProperty("context")}/static"
+        } else {
+            "static"
+        }
     }
 
     routing {
