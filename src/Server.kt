@@ -27,10 +27,12 @@ import org.jlibsedml.SEDMLTags
 import org.jlibsedml.SedML
 import org.renjin.script.RenjinScriptEngine
 import org.renjin.script.RenjinScriptEngineFactory
+import java.util.*
+import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
-const val LOCAL_TEST = false // Set true for testing locally with netty.
-val ENDPOINT = if(LOCAL_TEST) "http://localhost:8080/" else "http://localhost:8080/landingpage/"
+
+val appConfiguration = loadConfiguration()
 
 data class ModelView(
     val modelName: String,
@@ -77,8 +79,8 @@ fun Application.module() {
 
     val uploadTimes = mutableMapOf<String, String>()
     val executionTimes = mutableMapOf<String, String>()
-    val timesFileUrl = javaClass.getResource("/static/files/uploadDateTime/model_time_date.csv")
-    File(timesFileUrl.toURI()).readLines().forEach {
+    val timesFile = appConfiguration.getProperty("times_csv")
+    File(timesFile).readLines().forEach {
         val tokens = it.split(",")
         val modelId = tokens[0]
         val modelUploadTime = tokens[2]
@@ -88,10 +90,10 @@ fun Application.module() {
         executionTimes[modelId] = modelExecutionTime
     }
 
-    val filesFolderUrl = javaClass.getResource("/static/files")
-    val modelFiles = File(filesFolderUrl.toURI()).walk().filter { it.isFile && it.extension == "fskx" }.toList()
+    val filesFolder = appConfiguration.getProperty("model_folder")
+    val modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
 
-    val imgFiles = File(javaClass.getResource("/static/plots").toURI()).walk().filter { it.isFile }.toList()
+    val imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile }.toList()
 
     val rawMetadata = loadRawMetadata(modelFiles)
     val processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes)
@@ -106,9 +108,13 @@ fun Application.module() {
         val buttonColor = "rgb(83,121,166)"
         val hoverColor = "rgb(130,162,200)"
         val title2 = "FSK-Web"
-        val endpoint = ENDPOINT
+        val endpoint = appConfiguration.getProperty("base_url")
         val metadata = processedMetadata
-        val resourcesFolder = if(LOCAL_TEST) "static" else "landingpage/static"
+        val resourcesFolder = if(appConfiguration.getProperty("context") != null) {
+            "${appConfiguration.getProperty("context")}/static"
+        } else {
+            "static"
+        }
     }
 
     routing {
@@ -124,8 +130,7 @@ fun Application.module() {
                     // for the demo: if model is from FSK-Web (starts with 2020) then only download toymodel
                     if(modelFile.name.startsWith("2020") || modelFile.name.startsWith("showcase")
                         || modelFile.name.startsWith("gropin")){
-                        val modelFileUrl ={}.javaClass.getResource("/static/files/toymodel.fskx")
-                        modelFile = File(modelFileUrl.toURI())
+                        modelFile = File(appConfiguration.getProperty("model_folder"), "toymodel.fskx")
                     }
                     call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
                     call.respondFile(modelFile)
@@ -147,7 +152,7 @@ fun Application.module() {
                 try {
                     val imgFile = imgFiles.first { it.nameWithoutExtension == imageId }
                     call.response.header("Content-Disposition", "inline")
-                    call.respondFile(imgFile)
+                    call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
@@ -294,7 +299,7 @@ private fun processMetadata(
             modelType = metadataTree["modelType"].asText(),
             durationTime = executionTimes[modelId] ?: "", // Get durationTime from executionTimes dictionary
             uploadTime = uploadTimes[modelId] ?: "", // Get upload time from uploadTimes dictionary
-            downloadUrl = "$ENDPOINT/download/$index"
+            downloadUrl = "${appConfiguration.getProperty("base_url")}/download/$index"
         )
     }
 
@@ -379,6 +384,30 @@ fun readModel(modelFile: File): FskModel {
         workingDirectory,
         metadata
     )
+}
+
+private fun loadConfiguration(): Properties {
+
+    val properties = Properties()
+
+    val configFileInUserFolder = File(System.getProperty("user.home"), "landingpage.properties")
+
+    if (configFileInUserFolder.exists()) {
+        configFileInUserFolder.inputStream().use {
+            properties.load(it)
+        }
+    } else {
+        val catalinaFolder = System.getProperty("catalina.home")
+        if (catalinaFolder != null && File(catalinaFolder, "landingpage.properties").exists()) {
+            File(catalinaFolder, "landingpage.properties").inputStream().use {
+                properties.load(it)
+            }
+        } else {
+            error("Configuration file not found")
+        }
+    }
+
+    return properties
 }
 
 private fun readModelScript(modelFile: File): String {

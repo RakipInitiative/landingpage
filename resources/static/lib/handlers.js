@@ -91,9 +91,8 @@ function createComplexPanel(title, formData, data) {
 }
 
 function createPlotPanel(img) {
-  //return `<img  style='width:100%' src='data:image/svg+xml;utf8,${img}'/>`;
-  return `<img  style='width:100%' src='${img}'/>`;
-  //return img;
+  // return `<img  style='width:100%' src='${img}'/>`;
+  return img;
 }
 
 class GenericModel {

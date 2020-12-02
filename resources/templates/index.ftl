@@ -379,8 +379,7 @@
                 .then(response => response.json());
             
             let image = await fetch(BACKEND_URL + "image/" + metadata.generalInformation.identifier)
-                .then(response => response.blob())
-                .then(imageBlob => URL.createObjectURL(imageBlob));
+                .then(response => response.text());
             
             // Update .modal-title
             if (metadata.generalInformation && metadata.generalInformation.name) {
