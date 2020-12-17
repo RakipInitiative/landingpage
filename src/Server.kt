@@ -101,19 +101,11 @@ fun Application.module() {
     val parsedMetadata = rawMetadata.map { MAPPER.readTree(it) }
 
     val representation = object {
-        val title1 = "FSK-Web Landing Page"
-        val link1 = "https://knime.bfr.berlin/knime/#/FSK-Web/7._FSK_Repository_Model_Runner&single&run"
-        val linkName1 = "Web Repository (authentication required)"
-        val mainColor = "rgb(55,96,146)"
-        val buttonColor = "rgb(83,121,166)"
-        val hoverColor = "rgb(130,162,200)"
-        val title2 = "FSK-Web"
         val endpoint = appConfiguration.getProperty("base_url")
-        val metadata = processedMetadata
         val resourcesFolder = if(appConfiguration.getProperty("context") != null) {
-            "${appConfiguration.getProperty("context")}/static"
+            "${appConfiguration.getProperty("context")}/"
         } else {
-            "static"
+            ""
         }
     }
 
@@ -235,8 +227,8 @@ fun Application.module() {
             }
         }
 
-        static("/static") {
-            resources("static")
+        static("/assets") {
+            resources("assets")
         }
     }
 }
