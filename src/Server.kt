@@ -132,6 +132,10 @@ fun Application.module() {
             }
         }
 
+        get("/metadata") {
+            call.respond(parsedMetadata)
+        }
+
         get("/metadata/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 call.respond(parsedMetadata[it])
@@ -188,9 +192,6 @@ fun Application.module() {
                     } else {
                         call.respondText(model.run(0))
                     }
-
-
-
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
@@ -221,6 +222,30 @@ fun Application.module() {
 
                     val simulations = readSimulations(modelFile, parameter)
                     call.respond(simulations)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        // endpoint to get the time for executing a default simulation
+        // i = index
+        get("/executionTime/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    call.respond(processedMetadata.views[it].durationTime)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        // endpoint to get the upload Date
+        // i = index
+        get("/uploadDate/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    call.respond(processedMetadata.views[it].uploadTime)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }

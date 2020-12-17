@@ -8,6 +8,11 @@
         <link rel="stylesheet" href="${representation.resourcesFolder}/assets/css/styles.css" type="text/css">
     </head>
     <body>
+        <!-- Assign local backend -->
+        <script>
+            _endpoint = "${representation.endpoint}/";
+        </script>
+
         <!-- vendors js -->
         <script src="${representation.resourcesFolder}/assets/js/lib/jquery.3.4.1.min.js" ></script>
         <!-- bfr data js -->
@@ -16,6 +21,7 @@
         <script src="${representation.resourcesFolder}/assets/js/app.js"></script>
         <!-- page script for initializing app -->
         <script src="${representation.resourcesFolder}/assets/js/scripts.js"></script>
+
         <div class="landingpage pt-0"></div>
     </body>
 </html>
