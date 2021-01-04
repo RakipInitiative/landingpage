@@ -21,6 +21,9 @@
         <script src="${representation.resourcesFolder}/assets/js/app.js"></script>
         <!-- page script for initializing app -->
         <script src="${representation.resourcesFolder}/assets/js/scripts.js"></script>
+        <script>
+            _appVars.header.brand.logo = "${representation.resourcesFolder}/assets/img/bfr_logo.gif";
+        </script>
 
         <div class="landingpage pt-0"></div>
     </body>
