@@ -3,7 +3,7 @@ var _endpoint = _endpoint || 'https://knime.bfr.berlin/backend/';//http://localh
 var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
 	image			: _endpoint + 'image/',
-	download		: _endpoint + 'download/',
+	download		: _endpoint + 'download_dummy/',
 	uploadDate		: _endpoint + 'uploadDate/',
 	executionTime	: _endpoint + 'executionTime/',
 	simulations		: _endpoint + 'simulations/',

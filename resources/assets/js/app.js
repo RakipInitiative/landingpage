@@ -13790,8 +13790,8 @@ var APPModalMTDetails = function (_APPModal) {
 
 				// title
 				$panel.append('<div class="panel-heading">' + menu.label + '</div>');
-
-				var $plot = $('<figure class="figure"><img src="' + modelHandler._img + '" /></figure>').appendTo($panel).wrap('<div class="panel-plot"></div>');
+                var $plot = $(modelHandler._img).appendTo($panel).wrapAll('<div class="panel-plot"></div>');
+				//var $plot = $('<figure class="figure"><img src="' + modelHandler._img + '" /></figure>').appendTo($panel).wrap('<div class="panel-plot"></div>');
 			}
 
 			return $panel;
@@ -13814,7 +13814,7 @@ var APPModalMTDetails = function (_APPModal) {
 			if (modelMetadata) {
 
 				// get plot image
-				var imgUrl = await _fetchData._blob(_endpoints.image, modelMetadata.generalInformation.identifier); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier); // O._app._getImage( modelMetadata.generalInformation.identifier );
 
 				// get appropiate modelMetadata modelHandler for the model type.
 				if (modelMetadata.modelType === 'genericModel') {
