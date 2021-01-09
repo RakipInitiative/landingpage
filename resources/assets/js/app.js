@@ -13070,7 +13070,26 @@ var _sorter = {
 		}
 
 		return data;
-	}
+	},
+	_content: async function _contentPost(src, id, payload) {
+    		_log('UTILS / _fetchData.content: ' + src + ', ' + id);
+    		var data = null;
+    		// append id if not type "set"
+    		src = !_isNull(id) ? src + id : src;
+
+    		var response = await fetch(src, {
+    		    method:'POST',
+    		    headers: {
+                      'Content-Type': 'application/json'
+                      // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+    		    body:JSON.stringify(payload)
+    		});
+
+    		data = await response.text();
+
+    		return data;
+    	}
 
 	/**
   * CHECK UNDEFINED CONTENT
@@ -14787,8 +14806,19 @@ var APPModalMTSimulations = function (_APPModal2) {
 				// run simulation by selected index
 
 				// execute result
-				var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
+				payload =    {
+                                  "name": "defaultSimulation",
+                                  "parameters": {
+                                      "logDoses": "seq(0,8,by=0.1)",
+                                      "alphaGamma": "0.145",
+                                      "betaGamma": "7.59",
+                                      "rPillinf": "0.06",
+                                      "etaPillinf": "0.88"
+                                  }
+                              };
 
+				//var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
+                var result = await _fetchData._contentPost(_endpoints.execution, 1, payload); //O._app._getExecutionResult( modelId ) ;
 				$alert.remove();
 
 				// add executet simulation name as panel-title
