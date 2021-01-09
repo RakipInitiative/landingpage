@@ -9,7 +9,10 @@ var _endpoints 	= {
 	simulations		: _endpoint + 'simulations/',
 	execution 		: _endpoint + 'execute/',
 	search 			: _endpoint + 'search/',
-	filter 			: _endpoint + 'filter'
+	filter 			: _endpoint + 'filter',
+	metadata		: _endpoint + 'metadata/',
+    modelScript     : _endpoint + "modelscript/",
+    visScript       : _endpoint + "visualizationscript/",
 };
 
 var _appVars = {
