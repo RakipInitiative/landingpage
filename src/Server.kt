@@ -119,11 +119,8 @@ fun Application.module() {
                 try {
 
                     var modelFile = modelFiles[it]
-                    // for the demo: if model is from FSK-Web (starts with 2020) then only download toymodel
-                    if(modelFile.name.startsWith("2020") || modelFile.name.startsWith("showcase")
-                        || modelFile.name.startsWith("gropin")){
-                        modelFile = File(appConfiguration.getProperty("model_folder"), "toymodel.fskx")
-                    }
+
+
                     call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
                     call.respondFile(modelFile)
                 } catch (err: IndexOutOfBoundsException) {
@@ -131,7 +128,19 @@ fun Application.module() {
                 }
             }
         }
+        get("/download_dummy/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
 
+                    var modelFile = File(appConfiguration.getProperty("model_folder"), "toymodel.fskx")
+
+                    call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
+                    call.respondFile(modelFile)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/metadata") {
             call.respond(parsedMetadata)
         }
