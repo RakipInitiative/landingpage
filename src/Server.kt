@@ -606,6 +606,7 @@ fun SedML.getFskSimulations(parameterMetadata: JsonNode): List<FskSimulation> {
 
 /**
  * Run model with the simulationIndex if provided or the selected simulation in model file (SED-ML).
+ * UPDATE: if a userDefinedSim was given with the POST endpoint, then run that simulation and ignore simulationIndex
  */
 fun FskModel.run(simulationIndex: Int, userDefinedSim:FskSimulation?): String {
 
@@ -668,6 +669,10 @@ fun FskModel.runSelectedSimulation(engine: RenjinScriptEngine, simulationIndex: 
 
 }
 
+/**
+ * This function runs a user defined simulation instead of the simulations from the model file.
+ * The simulation was given by POST execute endpoint
+ */
 fun FskModel.runSelectedSimulation(engine: RenjinScriptEngine, userDefinedSim: FskSimulation) {
 
 
