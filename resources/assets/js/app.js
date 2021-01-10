@@ -13258,51 +13258,87 @@ var _sorter = {
    */
 
 };var _fetchData = {
-	_json: async function _json(src, id) {
-		_log('UTILS / _fetchData.json: ' + src + ', ' + id);
+	_json: async function _json(src, id, signal) {
+		_log('UTILS / _fetchData._json: ' + src + ', ' + id);
 		var data = null;
 		// append id if not type "set"
 		src = !_isNull(id) ? src + id : src;
 
-		var response = await fetch(src);
-		data = await response.json();
+		var fetchOpts = {};
+		!_isNull(signal) ? fetchOpts.signal = signal : null;
+
+		var response = await fetch(src, fetchOpts).catch(function (error) {
+			if (error.name === 'AbortError') {
+				_log('cancelled', 'level1');
+			}
+		});
+
+		if (response) {
+			data = await response.json();
+		}
 
 		return data;
 	},
-	_blob: async function _blob(src, id) {
-		_log('UTILS / _fetchData.blob: ' + src + ', ' + id);
+	_blob: async function _blob(src, id, signal) {
+		_log('UTILS / _fetchData._blob: ' + src + ', ' + id);
 		var data = null;
 		// append id if not type "set"
 		src = !_isNull(id) ? src + id : src;
 
-		var response = await fetch(src);
-		var blob = await response.blob();
+		var fetchOpts = {};
+		!_isNull(signal) ? fetchOpts.signal = signal : null;
 
-		var urlCreator = window.URL || window.webkitURL || window;
-		data = urlCreator.createObjectURL(blob);
+		var response = await fetch(src, fetchOpts).catch(function (error) {
+			if (error.name === 'AbortError') {
+				_log('cancelled', 'level1');
+			}
+		});
+		if (response) {
+			var blob = await response.blob();
+
+			var urlCreator = window.URL || window.webkitURL || window;
+			data = urlCreator.createObjectURL(blob);
+		}
 
 		return data;
 	},
-	_content: async function _content(src, id) {
-		_log('UTILS / _fetchData.content: ' + src + ', ' + id);
+	_content: async function _content(src, id, signal) {
+		_log('UTILS / _fetchData._content: ' + src + ', ' + id);
 		var data = null;
 		// append id if not type "set"
 		src = !_isNull(id) ? src + id : src;
 
-		var response = await fetch(src);
-		data = await response.text();
+		var fetchOpts = {};
+		!_isNull(signal) ? fetchOpts.signal = signal : null;
+
+		var response = await fetch(src, fetchOpts).catch(function (error) {
+			if (error.name === 'AbortError') {
+				_log('cancelled', 'level1');
+			}
+		});
+
+		if (response) {
+			data = await response.text();
+		}
 
 		return data;
 	},
-	_array: async function _array(src, arrayLength) {
-		_log('UTILS / _fetchData.json: ' + src + ', ' + arrayLength);
+	_array: async function _array(src, arrayLength, signal) {
+		_log('UTILS / _fetchData._array: ' + src + ', ' + arrayLength);
 		var data = [];
 
+		var fetchOpts = {};
+		!_isNull(signal) ? fetchOpts.signal = signal : null;
+
 		var _loop = async function _loop(i) {
-			await fetch(src + i).then(function (resp) {
+			await fetch(src + i, fetchOpts).then(function (resp) {
 				return resp.text().then(function (text) {
 					data[i] = text;
 				});
+			}).catch(function (error) {
+				if (error.name === 'AbortError') {
+					_log('cancelled', 'level1');
+				}
 			});
 		};
 
@@ -13313,20 +13349,26 @@ var _sorter = {
 		return data;
 	},
 	// function to send a FSKSimulation to execute endpoint with POST
-	_contentPost: async function _contentPost(src, id, payload) {
+	_contentPost: async function _contentPost(src, id, payload, signal) {
     		_log('UTILS / _fetchData.content: ' + src + ', ' + id);
     		var data = null;
     		// append id if not type "set"
     		src = !_isNull(id) ? src + id : src;
+            var fetchOpts = {};
+		    !_isNull(signal) ? fetchOpts.signal = signal : null;
 
-    		var response = await fetch(src, {
+    		var response = await fetch(src,fetchOpts, {
     		    method:'POST',
     		    headers: {
                       'Content-Type': 'application/json'
                       // 'Content-Type': 'application/x-www-form-urlencoded',
                     },
     		    body:JSON.stringify(payload)
-    		});
+    		}).catch(function (error) {
+              			if (error.name === 'AbortError') {
+              				_log('cancelled', 'level1');
+              			}
+              		});
 
     		data = await response.text();
 
@@ -13526,7 +13568,7 @@ var APPModal = function () {
 			// modal head title
 			O._$modalTitle = $('<h1 class="modal-title"></h1>').appendTo(O._$modalHead);
 			// modal close
-			$('<button type="button" class="action action-pure action-lg ml-2" data-dismiss="modal" aria-label="Close"><i class="feather icon-x"></i></button>').appendTo(O._$modalHead);
+			$('<button type="button" class="modal-close action action-pure action-lg ml-2" data-dismiss="modal" aria-label="Close"><i class="feather icon-x"></i></button>').appendTo(O._$modalHead);
 		}
 
 		/**
@@ -14151,9 +14193,9 @@ var APPModalMTDetails = function (_APPModal) {
 			if (modelMetadata) {
 
 				// get plot image
-				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier); // O._app._getImage( modelMetadata.generalInformation.identifier );
-				var modelScript = await _fetchData._content(_endpoints.modelScript, O._modelId); // O._app._getImage( modelMetadata.generalInformation.identifier );
-				var visScript = await _fetchData._content(_endpoints.visScript, O._modelId); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var modelScript = await _fetchData._content(_endpoints.modelScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var visScript = await _fetchData._content(_endpoints.visScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
 
 				// get appropiate modelMetadata modelHandler for the model type.
 				if (modelMetadata.modelType === 'genericModel') {
@@ -14236,6 +14278,19 @@ var APPModalMTSimulations = function (_APPModal2) {
 			O._simSelectedIndex = 0; // initial simulation
 
 			_get(APPModalMTSimulations.prototype.__proto__ || Object.getPrototypeOf(APPModalMTSimulations.prototype), '_create', this).call(this);
+
+			// bind hide event
+			O._$modal.on('hide.bs.modal', function (event) {
+				// callback
+				if ($.isFunction(O.opts.on.hide)) {
+					O.opts.on.hide.call(O, O, event);
+				}
+				// abort running fetch
+				if (O._fetchController) {
+					_log('MODAL SIM / abort fetch');
+					O._fetchController.abort();
+				}
+			});
 		}
 
 		/**
@@ -15108,12 +15163,16 @@ var APPModalMTSimulations = function (_APPModal2) {
 
 			if (modelId >= 0) {
 
+				O._fetchController = new AbortController();
+				O._signal = O._fetchController.signal;
+
 				// clear tab content
 				O._clear(O._$modalExecution._$content);
 				O._clear(O._$modalExecution._$title);
 				O._setState('execution');
 
 				// activate loader
+				O._$modal.addClass('loading');
 				O._loader._setState(true);
 				// create loading alert
 				var $alert = _appUI._createAlert('executing model... please wait', {
@@ -15138,7 +15197,10 @@ var APPModalMTSimulations = function (_APPModal2) {
                 delete(payload["desc"])
 
 				//var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
-                var result = await _fetchData._contentPost(_endpoints.execution, modelId, payload); //O._app._getExecutionResult( modelId ) ;
+                var result = await _fetchData._contentPost(_endpoints.execution, modelId, payload, O._signal); //O._app._getExecutionResult( modelId ) ;
+				// clear tab content
+                O._clear(O._$modalExecution._$content);
+                O._clear(O._$modalExecution._$title);
 				$alert.remove();
 
 				// add executet simulation name as panel-title
@@ -15148,6 +15210,7 @@ var APPModalMTSimulations = function (_APPModal2) {
 				var $plot = $(result).appendTo(O._$modalExecution._$content).wrapAll('<div class="panel-plot"></div>');
 
 				// deactivate loader
+				O._$modal.removeClass('loading');
 				O._loader._setState(false);
 
 				// callback
