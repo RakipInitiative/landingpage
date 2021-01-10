@@ -18,7 +18,7 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/RAKIP_logo.gif', // false
+			logo			: 'assets/img/RAKIP_logo.jpg', // false
 			title			: 'Model Repository (Beta)' // false or ''
 		},
 		nav				: [
