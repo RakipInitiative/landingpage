@@ -11719,13 +11719,16 @@ date: 08.12.2020
 */
 
 var ModelHandler = function () {
-	function ModelHandler(metadata, img) {
+	function ModelHandler(metadata, img, modelScript, visScript ) {
 		_classCallCheck(this, ModelHandler);
 
 		this._metadata = metadata;
 		this._schema = {};
 		this._menu = [];
 		this._img = img;
+		this._modelScript = modelScript;
+        this._visScript = visScript;
+        this.panels = {};
 	}
 
 	_createClass(ModelHandler, [{
@@ -11829,6 +11832,15 @@ var ModelHandler = function () {
 				},
 				plot: {
 					type: 'plot'
+				},
+				modelScript: {
+					type: 'modelScript'
+				},
+				visualizationScript: {
+					type: 'visualizationScript'
+				},
+				readme: {
+					type: 'readme'
 				}
 			};
 		}
@@ -11840,10 +11852,10 @@ var ModelHandler = function () {
 var GenericModel = function (_ModelHandler) {
 	_inherits(GenericModel, _ModelHandler);
 
-	function GenericModel(metadata, img) {
+	function GenericModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, GenericModel);
 
-		var _this = _possibleConstructorReturn(this, (GenericModel.__proto__ || Object.getPrototypeOf(GenericModel)).call(this, metadata, img));
+		var _this = _possibleConstructorReturn(this, (GenericModel.__proto__ || Object.getPrototypeOf(GenericModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this._schema = schemas.genericModel;
 		_this._menu = [{
@@ -11919,10 +11931,107 @@ var GenericModel = function (_ModelHandler) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(GenericModel.prototype.__proto__ || Object.getPrototypeOf(GenericModel.prototype), '_create', _this).call(_this);
 		return _this;
 	}
+
+	_createClass(GenericModel, [{
+		key: 'validate',
+
+
+		// Validate this.panels and return boolean
+		value: function validate() {
+			var isValid = true;
+			if (!this.panels.generalInformation.validate()) isValid = false;
+			if (!this.panels.modelCategory.validate()) isValid = false;
+			if (!this.panels.scopeGeneral.validate()) isValid = false;
+			if (!this.panels.study.validate()) isValid = false;
+			return isValid;
+		}
+	}, {
+		key: '_createPanels',
+		value: function _createPanels() {
+			var port = window.port || -1;
+			var schema = schemas.genericModel;
+			return {
+				generalInformation: new FormPanel("General", schema.generalInformation, this._metadata.generalInformation, port),
+				modelCategory: new FormPanel("Model category", schema.modelCategory, this._metadata.generalInformation.modelCategory, port),
+				author: new TablePanel("Author", schema.contact, this._metadata.generalInformation.author, port),
+				creator: new TablePanel("Creator", schema.contact, this._metadata.generalInformation.creator, port),
+				reference: new TablePanel("Reference", schema.reference, this._metadata.generalInformation.reference, port),
+				scopeGeneral: new FormPanel("General", schema.scope, this._metadata.scope, port),
+				product: new TablePanel("Product", schema.product, this._metadata.scope.product, port),
+				hazard: new TablePanel("Hazard", schema.hazard, this._metadata.scope.hazard, port),
+				population: new TablePanel("Population", schema.populationGroup, this._metadata.scope.populationGroup, port),
+				study: new FormPanel("Study", schema.study, this._metadata.dataBackground.study, port),
+				studySample: new TablePanel("Study sample", schema.studySample, this._metadata.dataBackground.studySample, port),
+				dietaryAssessmentMethod: new TablePanel("Dietary assessment method", schema.dietaryAssessmentMethod, this._metadata.dataBackground.dietaryAssessmentMethod, port),
+				laboratory: new TablePanel("Laboratory", schema.laboratory, this._metadata.dataBackground.laboratory, port),
+				assay: new TablePanel("Assay", schema.assay, this._metadata.dataBackground.assay, port),
+				modelMath: new FormPanel("Model math", schema.modelMath, this._metadata.modelMath, port),
+				parameter: new TablePanel("Parameter", schema.parameter, this._metadata.modelMath.parameter, port),
+				qualityMeasures: new TablePanel("Quality measures", schema.qualityMeasures, this._metadata.modelMath.qualityMeasures, port),
+				modelEquation: new TablePanel("Model equation", schema.modelEquation, this._metadata.modelMath.modelEquation, port),
+				exposure: new TablePanel("Exposure", schema.exposure, this._metadata.modelMath.exposure, port)
+			};
+		}
+	}, {
+		key: 'metaData',
+		get: function get() {
+			try {
+				// generalInformation
+				this._metadata.generalInformation = this.panels.generalInformation.data;
+				this._metadata.generalInformation.modelCategory = this.panels.modelCategory.data;
+				this._metadata.generalInformation.author = this.panels.author.data;
+				this._metadata.generalInformation.creator = this.panels.creator.data;
+				this._metadata.generalInformation.reference = this.panels.reference.data;
+
+				// Scope
+				this._metadata.scope = this.panels.scopeGeneral.data;
+				this._metadata.scope.product = this.panels.product.data;
+				this._metadata.scope.hazard = this.panels.hazard.data;
+				this._metadata.scope.populationGroup = this.panels.population.data;
+
+				// Data background
+				this._metadata.dataBackground.study = this.panels.study.data;
+				this._metadata.dataBackground.studySample = this.panels.studySample.data;
+				this._metadata.dataBackground.dietaryAssessmentMethod = this.panels.dietaryAssessmentMethod.data;
+				this._metadata.dataBackground.laboratory = this.panels.laboratory.data;
+				this._metadata.dataBackground.assay = this.panels.assay.data;
+
+				// Model math
+				this._metadata.modelMath = this.panels.modelMath.data;
+				this._metadata.modelMath.parameter = this.panels.parameter.data;
+				this._metadata.modelMath.parameter.forEach(function (param) {
+					return delete param.reference;
+				});
+
+				this._metadata.modelMath.qualityMeasures = this.panels.qualityMeasures.data;
+				this._metadata.modelMath.modelEquation = this.panels.modelEquation.data;
+				this._metadata.modelMath.exposure = this.panels.exposure.data;
+
+				this._metadata.modelType = "genericModel";
+
+				this._metadata = metadataFix(this._metadata);
+			} catch (error) {
+				console.log(error);
+			}
+			return this._metadata;
+		}
+	}]);
 
 	return GenericModel;
 }(ModelHandler);
@@ -11930,10 +12039,10 @@ var GenericModel = function (_ModelHandler) {
 var DataModel = function (_ModelHandler2) {
 	_inherits(DataModel, _ModelHandler2);
 
-	function DataModel(metadata, img) {
+	function DataModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, DataModel);
 
-		var _this2 = _possibleConstructorReturn(this, (DataModel.__proto__ || Object.getPrototypeOf(DataModel)).call(this, metadata, img));
+		var _this2 = _possibleConstructorReturn(this, (DataModel.__proto__ || Object.getPrototypeOf(DataModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this2._schema = schemas.dataModel;
 		_this2._menu = [{
@@ -11994,6 +12103,18 @@ var DataModel = function (_ModelHandler2) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(DataModel.prototype.__proto__ || Object.getPrototypeOf(DataModel.prototype), '_create', _this2).call(_this2);
 		return _this2;
@@ -12005,10 +12126,10 @@ var DataModel = function (_ModelHandler2) {
 var PredictiveModel = function (_ModelHandler3) {
 	_inherits(PredictiveModel, _ModelHandler3);
 
-	function PredictiveModel(metadata, img) {
+	function PredictiveModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, PredictiveModel);
 
-		var _this3 = _possibleConstructorReturn(this, (PredictiveModel.__proto__ || Object.getPrototypeOf(PredictiveModel)).call(this, metadata, img));
+		var _this3 = _possibleConstructorReturn(this, (PredictiveModel.__proto__ || Object.getPrototypeOf(PredictiveModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this3._schema = schemas.predictiveModel;
 		_this3._menu = [{
@@ -12063,6 +12184,18 @@ var PredictiveModel = function (_ModelHandler3) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(PredictiveModel.prototype.__proto__ || Object.getPrototypeOf(PredictiveModel.prototype), '_create', _this3).call(_this3);
 		return _this3;
@@ -12074,10 +12207,10 @@ var PredictiveModel = function (_ModelHandler3) {
 var OtherModel = function (_ModelHandler4) {
 	_inherits(OtherModel, _ModelHandler4);
 
-	function OtherModel(metadata, img) {
+	function OtherModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, OtherModel);
 
-		var _this4 = _possibleConstructorReturn(this, (OtherModel.__proto__ || Object.getPrototypeOf(OtherModel)).call(this, metadata, img));
+		var _this4 = _possibleConstructorReturn(this, (OtherModel.__proto__ || Object.getPrototypeOf(OtherModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this4._schema = schemas.otherModel;
 		_this4._menu = [{
@@ -12147,6 +12280,18 @@ var OtherModel = function (_ModelHandler4) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(OtherModel.prototype.__proto__ || Object.getPrototypeOf(OtherModel.prototype), '_create', _this4).call(_this4);
 		return _this4;
@@ -12158,10 +12303,10 @@ var OtherModel = function (_ModelHandler4) {
 var DoseResponseModel = function (_ModelHandler5) {
 	_inherits(DoseResponseModel, _ModelHandler5);
 
-	function DoseResponseModel(metadata, img) {
+	function DoseResponseModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, DoseResponseModel);
 
-		var _this5 = _possibleConstructorReturn(this, (DoseResponseModel.__proto__ || Object.getPrototypeOf(DoseResponseModel)).call(this, metadata, img));
+		var _this5 = _possibleConstructorReturn(this, (DoseResponseModel.__proto__ || Object.getPrototypeOf(DoseResponseModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this5._schema = schemas.doseResponseModel;
 		_this5._menu = [{
@@ -12231,6 +12376,18 @@ var DoseResponseModel = function (_ModelHandler5) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		// extend panels with specific data and schemas
 		_this5._panels = $.extend(true, {}, _this5._panels, {
@@ -12269,10 +12426,10 @@ var DoseResponseModel = function (_ModelHandler5) {
 var ToxicologicalModel = function (_ModelHandler6) {
 	_inherits(ToxicologicalModel, _ModelHandler6);
 
-	function ToxicologicalModel(metadata, img) {
+	function ToxicologicalModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, ToxicologicalModel);
 
-		var _this6 = _possibleConstructorReturn(this, (ToxicologicalModel.__proto__ || Object.getPrototypeOf(ToxicologicalModel)).call(this, metadata, img));
+		var _this6 = _possibleConstructorReturn(this, (ToxicologicalModel.__proto__ || Object.getPrototypeOf(ToxicologicalModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this6._schema = schemas.toxicologicalModel;
 		_this6._menu = [{
@@ -12342,6 +12499,18 @@ var ToxicologicalModel = function (_ModelHandler6) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 
 		// extend panels with specific data and schemas
@@ -12381,10 +12550,10 @@ var ToxicologicalModel = function (_ModelHandler6) {
 var ExposureModel = function (_ModelHandler7) {
 	_inherits(ExposureModel, _ModelHandler7);
 
-	function ExposureModel(metadata, img) {
+	function ExposureModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, ExposureModel);
 
-		var _this7 = _possibleConstructorReturn(this, (ExposureModel.__proto__ || Object.getPrototypeOf(ExposureModel)).call(this, metadata, img));
+		var _this7 = _possibleConstructorReturn(this, (ExposureModel.__proto__ || Object.getPrototypeOf(ExposureModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this7._schema = schemas.exposureModel;
 		_this7._menu = [{
@@ -12460,6 +12629,18 @@ var ExposureModel = function (_ModelHandler7) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(ExposureModel.prototype.__proto__ || Object.getPrototypeOf(ExposureModel.prototype), '_create', _this7).call(_this7);
 		return _this7;
@@ -12471,10 +12652,10 @@ var ExposureModel = function (_ModelHandler7) {
 var ProcessModel = function (_ModelHandler8) {
 	_inherits(ProcessModel, _ModelHandler8);
 
-	function ProcessModel(metadata, img) {
+	function ProcessModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, ProcessModel);
 
-		var _this8 = _possibleConstructorReturn(this, (ProcessModel.__proto__ || Object.getPrototypeOf(ProcessModel)).call(this, metadata, img));
+		var _this8 = _possibleConstructorReturn(this, (ProcessModel.__proto__ || Object.getPrototypeOf(ProcessModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this8._schema = schemas.processModel;
 		_this8._menu = [{
@@ -12535,6 +12716,18 @@ var ProcessModel = function (_ModelHandler8) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(ProcessModel.prototype.__proto__ || Object.getPrototypeOf(ProcessModel.prototype), '_create', _this8).call(_this8);
 		return _this8;
@@ -12546,10 +12739,10 @@ var ProcessModel = function (_ModelHandler8) {
 var ConsumptionModel = function (_ModelHandler9) {
 	_inherits(ConsumptionModel, _ModelHandler9);
 
-	function ConsumptionModel(metadata, img) {
+	function ConsumptionModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, ConsumptionModel);
 
-		var _this9 = _possibleConstructorReturn(this, (ConsumptionModel.__proto__ || Object.getPrototypeOf(ConsumptionModel)).call(this, metadata, img));
+		var _this9 = _possibleConstructorReturn(this, (ConsumptionModel.__proto__ || Object.getPrototypeOf(ConsumptionModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this9._schema = schemas.consumptionModel;
 		_this9._menu = [{
@@ -12613,6 +12806,18 @@ var ConsumptionModel = function (_ModelHandler9) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(ConsumptionModel.prototype.__proto__ || Object.getPrototypeOf(ConsumptionModel.prototype), '_create', _this9).call(_this9);
 		return _this9;
@@ -12624,10 +12829,10 @@ var ConsumptionModel = function (_ModelHandler9) {
 var HealthModel = function (_ModelHandler10) {
 	_inherits(HealthModel, _ModelHandler10);
 
-	function HealthModel(metadata, img) {
+	function HealthModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, HealthModel);
 
-		var _this10 = _possibleConstructorReturn(this, (HealthModel.__proto__ || Object.getPrototypeOf(HealthModel)).call(this, metadata, img));
+		var _this10 = _possibleConstructorReturn(this, (HealthModel.__proto__ || Object.getPrototypeOf(HealthModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this10._schema = schemas.healthModel;
 		_this10._menu = [{
@@ -12697,6 +12902,18 @@ var HealthModel = function (_ModelHandler10) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		return _this10;
 	}
@@ -12707,10 +12924,10 @@ var HealthModel = function (_ModelHandler10) {
 var RiskModel = function (_ModelHandler11) {
 	_inherits(RiskModel, _ModelHandler11);
 
-	function RiskModel(metadata, img) {
+	function RiskModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, RiskModel);
 
-		var _this11 = _possibleConstructorReturn(this, (RiskModel.__proto__ || Object.getPrototypeOf(RiskModel)).call(this, metadata, img));
+		var _this11 = _possibleConstructorReturn(this, (RiskModel.__proto__ || Object.getPrototypeOf(RiskModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this11._schema = schemas.riskModel;
 		_this11._menu = [{
@@ -12786,6 +13003,18 @@ var RiskModel = function (_ModelHandler11) {
 			label: "Plot",
 			id: 'plot',
 			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
+			submenus: []
 		}];
 		_get(RiskModel.prototype.__proto__ || Object.getPrototypeOf(RiskModel.prototype), '_create', _this11).call(_this11);
 		return _this11;
@@ -12797,10 +13026,10 @@ var RiskModel = function (_ModelHandler11) {
 var QraModel = function (_ModelHandler12) {
 	_inherits(QraModel, _ModelHandler12);
 
-	function QraModel(metadata, img) {
+	function QraModel(metadata, img, modelScript, visScript) {
 		_classCallCheck(this, QraModel);
 
-		var _this12 = _possibleConstructorReturn(this, (QraModel.__proto__ || Object.getPrototypeOf(QraModel)).call(this, metadata, img));
+		var _this12 = _possibleConstructorReturn(this, (QraModel.__proto__ || Object.getPrototypeOf(QraModel)).call(this, metadata, img, modelScript, visScript));
 
 		_this12._schema = schemas.qraModel;
 		_this12._menu = [{
@@ -12875,6 +13104,18 @@ var QraModel = function (_ModelHandler12) {
 		}, {
 			label: "Plot",
 			id: 'plot',
+			submenus: []
+		}, {
+			label: "Model",
+			id: 'modelScript',
+			submenus: []
+		}, {
+			label: "Visualization",
+			id: 'visualizationScript',
+			submenus: []
+		}, {
+			label: "Readme",
+			id: 'readme',
 			submenus: []
 		}];
 		_get(QraModel.prototype.__proto__ || Object.getPrototypeOf(QraModel.prototype), '_create', _this12).call(_this12);
@@ -13070,7 +13311,27 @@ var _sorter = {
 		}
 
 		return data;
-	}
+	},
+	// function to send a FSKSimulation to execute endpoint with POST
+	_contentPost: async function _contentPost(src, id, payload) {
+    		_log('UTILS / _fetchData.content: ' + src + ', ' + id);
+    		var data = null;
+    		// append id if not type "set"
+    		src = !_isNull(id) ? src + id : src;
+
+    		var response = await fetch(src, {
+    		    method:'POST',
+    		    headers: {
+                      'Content-Type': 'application/json'
+                      // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+    		    body:JSON.stringify(payload)
+    		});
+
+    		data = await response.text();
+
+    		return data;
+    	}
 
 	/**
   * CHECK UNDEFINED CONTENT
@@ -13427,6 +13688,9 @@ var APPModalMTDetails = function (_APPModal) {
 				// nav search
 				O._$navBar._$search = $('<input class="form-control form-control-plaintext search-input" type="search" placeholder="Search Details" aria-label="Search Details" />').appendTo(O._$navBar).attr('id', O._id + 'NavSearch').wrap('<div class="col col-xxs-auto order-2 modal-nav-search"></div>').wrap('<div class="search"></div>');
 
+
+
+
 				// nav tabs
 				O._$navBar._$nav = $('<ul class="nav nav-pointer pt-1 pt-md-0"></ul>').appendTo(O._$navBar).wrap('<div class="col-12 col-md-auto order-3 order-md-1 modal-nav-menu order-4"></div>').wrap('<div class="collapse navbar-collapse" id="' + O._navId + '"></div>');
 			}
@@ -13501,7 +13765,7 @@ var APPModalMTDetails = function (_APPModal) {
 			if (modelHandler && modelHandler._menu) {
 
 				$.each(modelHandler._menu, function (i, menuMeta) {
-
+					if (menuMeta.id == 'readme') return;
 					var $navItem = null;
 
 					if (menuMeta.submenus && menuMeta.submenus.length > 0) {
@@ -13530,6 +13794,7 @@ var APPModalMTDetails = function (_APPModal) {
 				// get each menus id
 				$.each(modelHandler._menu, function (i, menuMeta) {
 					// dropdown nav item 
+					if (menuMeta.id == 'readme') return;
 					if (menuMeta.submenus && menuMeta.submenus.length > 0) {
 						// iterate over submenus
 						$.each(menuMeta.submenus, function (j, submenuMeta) {
@@ -13623,6 +13888,14 @@ var APPModalMTDetails = function (_APPModal) {
 						else if (panelMeta.type == 'plot') {
 								$panel = O._createPlotPanel(menu, modelHandler);
 							}
+							// Model Script
+							else if (panelMeta.type == 'modelScript') {
+									$panel = O._createModelScriptPanel(menu, modelHandler);
+								}
+								// Visualization Script
+								else if (panelMeta.type == 'visualizationScript') {
+										$panel = O._createVisualizationScriptPanel(menu, modelHandler);
+									}
 				}
 			}
 
@@ -13790,8 +14063,72 @@ var APPModalMTDetails = function (_APPModal) {
 
 				// title
 				$panel.append('<div class="panel-heading">' + menu.label + '</div>');
-                var $plot = $(modelHandler._img).appendTo($panel).wrapAll('<div class="panel-plot"></div>');
-				//var $plot = $('<figure class="figure"><img src="' + modelHandler._img + '" /></figure>').appendTo($panel).wrap('<div class="panel-plot"></div>');
+
+				var $plot = $(modelHandler._img).appendTo($panel).wrapAll('<div class="panel-plot"></div>');
+			}
+
+			return $panel;
+		}
+		/**
+   * CREATE PLOT PANEL
+   * create plot tab-pane for specific menu
+   * @param {array} menu
+   * @param {object} modelHandler: object of class Model
+   */
+
+	}, {
+		key: '_createModelScriptPanel',
+		value: function _createModelScriptPanel(menu, modelHandler) {
+			var O = this;
+			_log('MODAL DETAILS / _createPlotPanel');
+
+			// tab-pane
+			var $panel = $('<div class="tab-pane h-100" role="tabpanel"></div>').attr('id', menu.id);
+
+			if (modelHandler && menu.id && modelHandler._modelScript) {
+				// get panel meta
+				var panelMeta = modelHandler._panels[menu.id];
+
+				// title
+				$panel.append('<div class="panel-heading">' + menu.label + '</div>');
+				var $script = $('<pre class="brush: js;"></pre>').appendTo($panel).wrap('<div class="panel-plot"></div>');
+
+				var lines = modelHandler._modelScript.split("\n");
+				for (var i = 0; i < lines.length; i++) {
+					$('<span class="line">' + lines[i] + '</span>').appendTo($script);
+				}
+			}
+
+			return $panel;
+		}
+		/**
+   * CREATE VISUALIZATION SCRIPT
+   * create plot tab-pane for specific menu
+   * @param {array} menu
+   * @param {object} modelHandler: object of class Model
+   */
+
+	}, {
+		key: '_createVisualizationScriptPanel',
+		value: function _createVisualizationScriptPanel(menu, modelHandler) {
+			var O = this;
+			_log('MODAL DETAILS / _createPlotPanel');
+
+			// tab-pane
+			var $panel = $('<div class="tab-pane h-100" role="tabpanel"></div>').attr('id', menu.id);
+
+			if (modelHandler && menu.id && modelHandler._visScript) {
+				// get panel meta
+				var panelMeta = modelHandler._panels[menu.id];
+
+				// title
+				$panel.append('<div class="panel-heading">' + menu.label + '</div>');
+				var $script = $('<pre class="brush: js;"></pre>').appendTo($panel).wrap('<div class="panel-plot"></div>');
+
+				var lines = modelHandler._visScript.split("\n");
+				for (var i = 0; i < lines.length; i++) {
+					$('<span class="line">' + lines[i] + '</span>').appendTo($script);
+				}
 			}
 
 			return $panel;
@@ -13815,34 +14152,36 @@ var APPModalMTDetails = function (_APPModal) {
 
 				// get plot image
 				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var modelScript = await _fetchData._content(_endpoints.modelScript, O._modelId); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var visScript = await _fetchData._content(_endpoints.visScript, O._modelId); // O._app._getImage( modelMetadata.generalInformation.identifier );
 
 				// get appropiate modelMetadata modelHandler for the model type.
 				if (modelMetadata.modelType === 'genericModel') {
-					modelHandler = new GenericModel(modelMetadata, imgUrl);
+					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'dataModel') {
-					modelHandler = new DataModel(modelMetadata, imgUrl);
+					modelHandler = new DataModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'predictiveModel') {
-					modelHandler = new PredictiveModel(modelMetadata, imgUrl);
+					modelHandler = new PredictiveModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'otherModel') {
-					modelHandler = new OtherModel(modelMetadata, imgUrl);
+					modelHandler = new OtherModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'toxicologicalModel') {
-					modelHandler = new ToxicologicalModel(modelMetadata, imgUrl);
+					modelHandler = new ToxicologicalModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'doseResponseModel') {
-					modelHandler = new DoseResponseModel(modelMetadata, imgUrl);
+					modelHandler = new DoseResponseModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'exposureModel') {
-					modelHandler = new ExposureModel(modelMetadata, imgUrl);
+					modelHandler = new ExposureModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'processModel') {
-					modelHandler = new ProcessModel(modelMetadata, imgUrl);
+					modelHandler = new ProcessModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'consumptionModel') {
-					modelHandler = new ConsumptionModel(modelMetadata, imgUrl);
+					modelHandler = new ConsumptionModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'healthModel') {
-					modelHandler = new HealthModel(modelMetadata, imgUrl);
+					modelHandler = new HealthModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'riskModel') {
-					modelHandler = new RiskModel(modelMetadata, imgUrl);
+					modelHandler = new RiskModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else if (modelMetadata.modelType === 'qraModel') {
-					modelHandler = new QraModel(modelMetadata, imgUrl);
+					modelHandler = new QraModel(modelMetadata, imgUrl, modelScript, visScript);
 				} else {
-					modelHandler = new GenericModel(modelMetadata, imgUrl);
+					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript);
 				}
 			}
 
@@ -14786,9 +15125,20 @@ var APPModalMTSimulations = function (_APPModal2) {
 				// TO DO 
 				// run simulation by selected index
 
-				// execute result
-				var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
+				// execute result with currently selected Simulation
+                // TO DO
+                // simulationIndex now redundant (still working on backend though)
 
+                var payload = this._simulations[this._simSelectedIndex];
+                // remove parameter "simDescription & simName from parameters since those were added by UI Designer
+                delete(payload["parameters"]["simName"])
+                delete(payload["parameters"]["simDescription"])
+
+                // remove element "desc" since that was added by UI Designer
+                delete(payload["desc"])
+
+				//var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
+                var result = await _fetchData._contentPost(_endpoints.execution, modelId, payload); //O._app._getExecutionResult( modelId ) ;
 				$alert.remove();
 
 				// add executet simulation name as panel-title

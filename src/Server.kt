@@ -20,6 +20,7 @@ import java.io.File
 import java.net.URI
 import de.bund.bfr.fskml.FSKML
 import de.bund.bfr.fskml.FskMetaDataObject
+import io.ktor.request.*
 import org.jdom.Text
 import org.jlibsedml.ChangeAttribute
 import org.jlibsedml.Libsedml
@@ -114,6 +115,7 @@ fun Application.module() {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
 
+
         get("/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -187,6 +189,7 @@ fun Application.module() {
             }
         }
 
+        // endpoint to run a model with a simulationIndex given as a parameter
         get("/execute/{i}") {
             // TODO: execute model at index i
 
@@ -195,18 +198,31 @@ fun Application.module() {
                     val modelFile = modelFiles[it]
                     val model = readModel(modelFile)
 
-                    if (call.parameters.contains("simulationIndex")) {
-                        val simIndex = call.parameters["simulationIndex"]?.toInt() ?: 0
-                        call.respondText(model.run(simIndex))
-                    } else {
-                        call.respondText(model.run(0))
-                    }
+                    val simulation = model.simulations[call.parameters["simulationIndex"]?.toInt() ?: 0]
+                    call.respondText(model.run(simulation))
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
             }
-
         }
+
+        // endpoint to run models with a posted simulation in the body(JSON)
+        post("/execute/{i}") {
+            val sim = call.receive<FskSimulation>()
+            //println("SERVER: Message from the client: $sim");
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = modelFiles[it]
+                    val model = readModel(modelFile)
+
+                    call.respondText(model.run(sim))
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
         get("/search/{term}") {
             val matchingModelIndexes = mutableListOf<Int>()
             call.parameters["term"]?.let { term ->
@@ -581,8 +597,9 @@ fun SedML.getFskSimulations(parameterMetadata: JsonNode): List<FskSimulation> {
 
 /**
  * Run model with the simulationIndex if provided or the selected simulation in model file (SED-ML).
+ * UPDATE: if a userDefinedSim was given with the POST endpoint, then run that simulation and ignore simulationIndex
  */
-fun FskModel.run(simulationIndex: Int): String {
+fun FskModel.run(simulation:FskSimulation): String {
 
     val factory = RenjinScriptEngineFactory()
     val engine = factory.scriptEngine
@@ -597,9 +614,8 @@ fun FskModel.run(simulationIndex: Int): String {
 //        engine.eval("setwd('C:/Users/de/Documents')")
 //        println(engine.eval("list.files('C:/Users/de/Documents')"))
     }
-
     // 2. Simulation script
-    runSelectedSimulation(engine, simulationIndex)
+    runSelectedSimulation(engine, simulation)
 
     // 3. Model script
     engine.eval(modelScript)
@@ -624,20 +640,21 @@ fun FskModel.run(simulationIndex: Int): String {
     return svgPlot
 }
 
-fun FskModel.runSelectedSimulation(engine: RenjinScriptEngine, simulationIndex: Int?) {
 
-    val selectedSimulation = simulations[simulationIndex ?: selectedSimulationIndex]
-
+/**
+ * This function runs a simulation from the model file.
+ * The simulation was given by POST execute endpoint or taken from the simulations from the model file
+ */
+fun FskModel.runSelectedSimulation(engine: RenjinScriptEngine, userDefinedSim: FskSimulation) {
 
     // Build parameters script
     val builder = StringBuilder()
-    for ((parameterName, parameterValue) in selectedSimulation.parameters) {
+    for ((parameterName, parameterValue) in userDefinedSim.parameters) {
         builder.append("$parameterName <- $parameterValue\n")
     }
     val parameterScript = builder.toString()
 
     engine.eval(parameterScript)
-
 }
 
 fun main() {
