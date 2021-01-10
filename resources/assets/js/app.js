@@ -13688,8 +13688,7 @@ var APPModalMTDetails = function (_APPModal) {
 				// nav search
 				O._$navBar._$search = $('<input class="form-control form-control-plaintext search-input" type="search" placeholder="Search Details" aria-label="Search Details" />').appendTo(O._$navBar).attr('id', O._id + 'NavSearch').wrap('<div class="col col-xxs-auto order-2 modal-nav-search"></div>').wrap('<div class="search"></div>');
 
-				// TO DO
-				// search functionality
+
 
 
 				// nav tabs
