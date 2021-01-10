@@ -18,8 +18,8 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/bfr_logo.gif', // false
-			title			: 'FSK-Web Landing Page Test' // false or ''
+			logo			: 'assets/img/RAKIP_logo.gif', // false
+			title			: 'Model Repository (Beta)' // false or ''
 		},
 		nav				: [
 			{
