@@ -22,6 +22,11 @@ var _appVars = {
 			title			: 'Model Repository (Beta)' // false or ''
 		},
 		nav				: [
+
+			{
+				title		: 'RAKIP Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/#/RAKIP-Web/7._FSK_Repository_Model_Runner&run'
+			},
 			{
 				title		: 'Infos',
 				href		: '#'
