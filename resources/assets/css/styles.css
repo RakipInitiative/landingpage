@@ -14597,6 +14597,9 @@ form {
   .modal-header {
     padding: 1rem 1rem; } }
 
+.modal.loading .modal-close, .modal.loading .action[data-dismiss="modal"], .modal.loading .select2-container .select2-selection--multiple .select2-selection__clear[data-dismiss="modal"], .select2-container .select2-selection--multiple .modal.loading .select2-selection__clear[data-dismiss="modal"], .modal.loading .select2-container .select2-selection--multiple .select2-selection__choice__remove[data-dismiss="modal"], .select2-container .select2-selection--multiple .modal.loading .select2-selection__choice__remove[data-dismiss="modal"] {
+  z-index: 2000; }
+
 @media (max-width: 767.98px) {
   .modal-body {
     padding: 1rem 1rem; } }
@@ -15302,7 +15305,8 @@ pre span:before {
 
 .modal-sim .panel-heading {
   position: sticky;
-  top: 0; }
+  top: 0;
+  left: 0; }
 
 .modal-sim .panel-plot {
   padding: 1.5rem 1.25rem; }
