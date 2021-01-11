@@ -13357,7 +13357,7 @@ var _sorter = {
             var fetchOpts = {};
 		    !_isNull(signal) ? fetchOpts.signal = signal : null;
 
-    		var response = await fetch(src,fetchOpts, {
+    		var response = await fetch(src,{
     		    method:'POST',
     		    headers: {
                       'Content-Type': 'application/json'
@@ -13370,7 +13370,9 @@ var _sorter = {
               			}
               		});
 
-    		data = await response.text();
+    		if (response) {
+                data = await response.text();
+            }
 
     		return data;
     	}
@@ -15204,7 +15206,7 @@ var APPModalMTSimulations = function (_APPModal2) {
 				$alert.remove();
 
 				// add executet simulation name as panel-title
-				var $title = $('<div class="panel-heading"></div>').text(O._simulations[O._selectedSimIndex].name).appendTo(O._$modalExecution._$content);
+				var $title = $('<div class="panel-heading"></div>').text(O._simulations[O._simSelectedIndex].name).appendTo(O._$modalExecution._$content);
 
 				// add result as plot
 				var $plot = $(result).appendTo(O._$modalExecution._$content).wrapAll('<div class="panel-plot"></div>');
