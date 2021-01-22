@@ -3,11 +3,7 @@ Full stack version of the landing page.
 - Backend written in Kotlin with Ktor at src/main/kotlin/server.kt
 - Frontend written with FreeMarker at src/main/resources/templates/index.ftl
 
-The application can be tested with the main method in server.kt and listens at port 8080. It has the endpoints:
-- */* serves the index page
-- */download/{i}* downloads the model file at index *i*
-- */metadata/{i}* returns the metadata of the model at index *i*
-- */image/{i}* returns the svg image of the model at index *i*. The image is returned as an SVG string.
+The application can be tested with the main method in server.kt and listens at port 8080. The endpoints are documented in the [wiki](https://github.com/RakipInitiative/landingpage/wiki#endpoints).
 
 ## Configuration
 The application requires a configuration file named *landingpage.properties* with settings needed for execution. This file can be either located at the user folder or at `CATALINA_HOME` (KNIME Server). In case both locations have the file, the file at the user folder takes precedence.
