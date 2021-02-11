@@ -15297,6 +15297,7 @@ var APPTable = function () {
 				tbody: 'tRows'
 			},
 			responsive: true, // wrap table with .table-responsive
+			rowActions: [],
 			rowSelectable: false, // 'single', // 'multiple', //
 			showToggle: true, // show card view toggle
 			wrapper: 'none', // 'card'
@@ -15625,6 +15626,53 @@ var APPTable = function () {
 			if ($.isFunction(O.opts.on.afterPopulate)) {
 				O.opts.on.afterPopulate.call(O, O, O._tableData);
 			}
+		}
+
+		/**
+   * UPDATE CUSTOM ROW ACTIONS
+   * sanitizes the custom actions given by init options, when table change removing on click bindings
+   * @param {object} tableData: data object
+   */
+
+	}, {
+		key: '_updateCustomRowActions',
+		value: function _updateCustomRowActions(tableData) {
+			var O = this;
+			_log('TABLE / _updateCustomRowActions');
+
+			tableData = tableData || O._tableData;
+
+			// create rows
+			$.each(tableData, function (rowIndex, rowData) {
+
+				var $tr = $('[data-row-id="' + rowIndex + '"]');
+
+				if ($tr.length > 0) {
+
+					if (O.opts.rowActions && O.opts.rowActions.length > 0) {
+						// create action col
+						var $tdActions = $tr.find('.td-actions');
+
+						// create row actions
+						$.each(O.opts.rowActions, function (j, action) {
+
+							// create action element
+							var $action = $tdActions.find('button#' + action.idPrefix + rowIndex);
+
+							// action on click
+							if (action.on) {
+								if (action.on.click && $.isFunction(action.on.click)) {
+									// bind click action on action
+									$action.on('click', function (event) {
+										_log(event);
+										action.on.click.call(O, O, $action, rowIndex, rowData);
+									});
+								}
+							}
+						});
+					}
+				}
+			});
 		}
 
 		/**
@@ -16324,10 +16372,13 @@ var APPTableMT = function (_APPTable) {
 
 				$.each(O._tableData, function (rowIndex, rowData) {
 					rowData.el.find('td').each(function (j, td) {
-						var value = $(td).html();
-						value = _formatter._searchHighlight(value, query);
+						var $td = $(td);
+						if (!$td.is('.td-actions')) {
+							var value = $td.html();
+							value = _formatter._searchHighlight(value, query);
 
-						$(td).html(value);
+							$td.html(value);
+						}
 					});
 				});
 			}
@@ -16418,6 +16469,9 @@ var APPTableMT = function (_APPTable) {
 						rowData.el.addClass('tr-hidden');
 					}
 				});
+
+				// updates custom row actions
+				// O._updateCustomRowActions();
 
 				O._updateStripes();
 
