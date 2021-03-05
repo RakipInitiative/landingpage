@@ -14550,6 +14550,21 @@ var APPModalMTSimulations = function (_APPModal2) {
 								if (param.unit && param.unit != '[]' && param.unit != 'Others') {
 									$input.attr('data-touchspin-postfix', param.unit);
 								}
+								var _step2 = 1;
+
+                                // calc decimals for slider steps depending on min-max values
+                                if (param.dataType.toLowerCase() === 'double') {
+                                    var _decimals = param.value.substring(param.value.indexOf('.') + 1).length;
+                                    for (var _j = 0; _j < _decimals; _j++) {
+                                        _step2 = _step2 / 10;
+                                    }
+                                    // add decimals support
+                                    if (_decimals > 0) {
+                                        $input.attr('data-touchspin-decimals', true);
+                                    }
+                                }
+                                // add step range
+                                $input.attr('data-touchspin-step', _step2);
 							}
 					}
 					// sim name
@@ -14808,7 +14823,7 @@ var APPModalMTSimulations = function (_APPModal2) {
 			// $.each( O._$simInputs, ( i, $input ) => {
 
 			$.each(O._simFields, function (id, field) {
-
+                _log(field);
 				if (field.input && field.param) {
 
 					// disable or enable 
@@ -14831,7 +14846,19 @@ var APPModalMTSimulations = function (_APPModal2) {
 						_log(field.param.id + ' : ' + simulation.parameters[field.param.id], 'level1');
 						var paramValue = simulation.parameters[field.param.id];
 
-						!_isNull(paramValue) ? field.input.val(paramValue) : null;
+						// change rangeslider value
+                        if (!_isUndefined($(field.input).data('rangeslider'))) {
+                            var $inputControl = $($(field.input).data('control-single'));
+                            if ($inputControl.length > 0) {
+                                $inputControl.val(paramValue);
+                                // trigger change
+                                $inputControl.trigger('change');
+                            }
+                        }
+                        // change other inputs
+                        else {
+                                !_isNull(paramValue) ? field.input.val(paramValue) : null;
+                            }
 					}
 					// custom fields like name and desc
 					else if (field.param._isCustom && field.param._isCustom == true) {
