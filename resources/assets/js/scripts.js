@@ -18,10 +18,15 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/bfr_logo.gif', // false
-			title			: 'FSK-Web Landing Page Test' // false or ''
+			logo			: 'assets/img/RAKIP_logo.jpg', // false
+			title			: 'Model Repository (Beta)' // false or ''
 		},
 		nav				: [
+
+			{
+				title		: 'RAKIP Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/#/RAKIP-Web/7._FSK_Repository_Model_Runner&run'
+			},
 			{
 				title		: 'Infos',
 				href		: '#'
