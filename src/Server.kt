@@ -136,6 +136,9 @@ fun Application.module(testing: Boolean = false) {
         val resourcesFolder = context
     }
 
+    /** Helper function for retrieving execution and upload times. */
+    fun getView(index: Int) = processedMetadata?.let { it.views[index] }
+
     routing {
         get("/") {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
@@ -280,10 +283,8 @@ fun Application.module(testing: Boolean = false) {
         // i = index
         get("/executionTime/{i}") {
             call.parameters["i"]?.toInt()?.let { index ->
-                processedMetadata?.let { metadata ->
-                    val uploadTime = metadata.views[index].durationTime
-                    call.respond(uploadTime)
-                }
+                val view = getView(index)
+                view?.let { call.respond(it.durationTime) }
             }
         }
 
@@ -291,10 +292,8 @@ fun Application.module(testing: Boolean = false) {
         // i = index
         get("/uploadDate/{i}") {
             call.parameters["i"]?.toInt()?.let { index ->
-                processedMetadata?.let { metadata ->
-                    val uploadTime = metadata.views[index].uploadTime
-                    call.respond(uploadTime)
-                }
+                val view = getView(index)
+                view?.let { call.respond(it.uploadTime) }
             }
         }
 
