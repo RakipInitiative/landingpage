@@ -1,4 +1,4 @@
-# Landing page [![Java CI](https://github.com/RakipInitiative/landingpage/actions/workflows/basic.yml/badge.svg)](https://github.com/RakipInitiative/landingpage/actions/workflows/basic.yml) [![Maintainability](https://api.codeclimate.com/v1/badges/ebfe4b46f0f8916bc7a3/maintainability)](https://codeclimate.com/github/RakipInitiative/landingpage/maintainability)
+# Landing page [![Java CI](https://github.com/RakipInitiative/landingpage/actions/workflows/basic.yml/badge.svg)](https://github.com/RakipInitiative/landingpage/actions/workflows/basic.yml) 
 Full stack version of the landing page.
 - Backend written in Kotlin with Ktor at src/main/kotlin/server.kt
 - Frontend written with FreeMarker at src/main/resources/templates/index.ftl
