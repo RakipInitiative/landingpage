@@ -33,8 +33,6 @@ import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
 
-val appConfiguration = loadConfiguration()
-
 data class ModelView(
     val modelName: String,
     val modelId: String,
@@ -55,8 +53,8 @@ data class ProcessedMetadata(
     val uniqueTypes: Set<String>
 )
 
-fun Application.module() {
-    install(DefaultHeaders)
+fun Application.module(testing: Boolean = false) {
+        install(DefaultHeaders)
     install(FreeMarker) {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
     }
@@ -78,36 +76,64 @@ fun Application.module() {
         anyHost()
     }
 
-    val uploadTimes = mutableMapOf<String, String>()
-    val executionTimes = mutableMapOf<String, String>()
-    val timesFile = appConfiguration.getProperty("times_csv")
-    File(timesFile).readLines().forEach {
-        val tokens = it.split(",")
-        val modelId = tokens[0]
-        val modelUploadTime = tokens[2]
-        val modelExecutionTime = tokens[1]
+    val modelFiles: List<File>
+    val filesFolder: String?
+    val imgFiles: List<File>
+    val rawMetadata: List<String>
+    val processedMetadata: ProcessedMetadata?
+    val parsedMetadata: List<JsonNode>
+    val baseUrl: String?
+    val context: String
 
-        uploadTimes[modelId] = modelUploadTime
-        executionTimes[modelId] = modelExecutionTime
+    if (testing) {
+        modelFiles = emptyList()
+        filesFolder = null
+        imgFiles = emptyList()
+        rawMetadata = emptyList()
+        processedMetadata = null
+        parsedMetadata = emptyList()
+        baseUrl = null
+        context = ""
+    } else {
+
+        val appConfiguration = loadConfiguration()
+
+        // Times
+        val timesFile = appConfiguration.getProperty("times_csv")
+
+        val temporaryUploadTimes = mutableMapOf<String, String>()
+        val temporaryExecutionTimes = mutableMapOf<String, String>()
+        File(timesFile).readLines().forEach {
+            val tokens = it.split(",")
+            val modelId = tokens[0]
+            temporaryUploadTimes[modelId] = tokens[2]
+            temporaryExecutionTimes[modelId] = tokens[1]
+        }
+
+        val uploadTimes = temporaryUploadTimes.toMap()
+        val executionTimes = temporaryExecutionTimes.toMap()
+
+        // Model files
+        filesFolder = appConfiguration.getProperty("model_folder")
+        modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
+
+        // Image files
+        imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile }.toList()
+
+        // Metadata
+        rawMetadata = loadRawMetadata(modelFiles)
+        parsedMetadata = rawMetadata.map { MAPPER.readTree(it) }
+
+        baseUrl = appConfiguration.getProperty("base_url")
+
+        context = appConfiguration.getProperty("context")?.let { "$it/" } ?: ""
+
+        processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes, baseUrl)
     }
 
-    val filesFolder = appConfiguration.getProperty("model_folder")
-    val modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
-
-    val imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile }.toList()
-
-    val rawMetadata = loadRawMetadata(modelFiles)
-    val processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes)
-
-    val parsedMetadata = rawMetadata.map { MAPPER.readTree(it) }
-
     val representation = object {
-        val endpoint = appConfiguration.getProperty("base_url")
-        val resourcesFolder = if(appConfiguration.getProperty("context") != null) {
-            "${appConfiguration.getProperty("context")}/"
-        } else {
-            ""
-        }
+        val endpoint = baseUrl ?: ""
+        val resourcesFolder = context
     }
 
     routing {
@@ -119,10 +145,7 @@ fun Application.module() {
         get("/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
-
-                    var modelFile = modelFiles[it]
-
-
+                    val modelFile = modelFiles[it]
                     call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
                     call.respondFile(modelFile)
                 } catch (err: IndexOutOfBoundsException) {
@@ -133,11 +156,11 @@ fun Application.module() {
         get("/download_dummy/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
-
-                    var modelFile = File(appConfiguration.getProperty("model_folder"), "toymodel.fskx")
-
-                    call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
-                    call.respondFile(modelFile)
+                    filesFolder?.let {
+                        val modelFile = File(it, "toymodel.fskx")
+                        call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
+                        call.respondFile(modelFile)
+                    }
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
@@ -256,11 +279,10 @@ fun Application.module() {
         // endpoint to get the time for executing a default simulation
         // i = index
         get("/executionTime/{i}") {
-            call.parameters["i"]?.toInt()?.let {
-                try {
-                    call.respond(processedMetadata.views[it].durationTime)
-                } catch (err: IndexOutOfBoundsException) {
-                    call.respond(HttpStatusCode.NotFound)
+            call.parameters["i"]?.toInt()?.let { index ->
+                processedMetadata?.let { metadata ->
+                    val uploadTime = metadata.views[index].durationTime
+                    call.respond(uploadTime)
                 }
             }
         }
@@ -268,11 +290,10 @@ fun Application.module() {
         // endpoint to get the upload Date
         // i = index
         get("/uploadDate/{i}") {
-            call.parameters["i"]?.toInt()?.let {
-                try {
-                    call.respond(processedMetadata.views[it].uploadTime)
-                } catch (err: IndexOutOfBoundsException) {
-                    call.respond(HttpStatusCode.NotFound)
+            call.parameters["i"]?.toInt()?.let { index ->
+                processedMetadata?.let { metadata ->
+                    val uploadTime = metadata.views[index].uploadTime
+                    call.respond(uploadTime)
                 }
             }
         }
@@ -307,7 +328,8 @@ private fun loadRawMetadata(modelFiles: List<File>): List<String> {
 private fun processMetadata(
     rawMetadata: List<String>,
     executionTimes: Map<String, String>,
-    uploadTimes: Map<String, String>
+    uploadTimes: Map<String, String>,
+    baseUrl: String?
 ): ProcessedMetadata {
 
     val modelViews = rawMetadata.mapIndexed { index, rawModel ->
@@ -341,7 +363,7 @@ private fun processMetadata(
             modelType = metadataTree["modelType"].asText(),
             durationTime = executionTimes[modelId] ?: "", // Get durationTime from executionTimes dictionary
             uploadTime = uploadTimes[modelId] ?: "", // Get upload time from uploadTimes dictionary
-            downloadUrl = "${appConfiguration.getProperty("base_url")}/download/$index"
+            downloadUrl = baseUrl?.let { "$it/download/$index" } ?: ""
         )
     }
 
