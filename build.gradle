@@ -26,6 +26,7 @@ tomcat {
 sourceSets {
     main.kotlin.srcDirs = [ 'src' ]
     main.resources.srcDirs = [ 'resources' ]
+    test.kotlin.srcDirs = test.java.srcDirs = ['test']
 }
 
 repositories {
@@ -72,6 +73,7 @@ dependencies {
     compile( 'org.renjin.cran:MALDIquant:1.19.3-b1')
     compile 'org.renjin.cran:dplyr:0.8.2-b6'
 
+    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
 }
 
 task run(dependsOn: tomcatRun)
