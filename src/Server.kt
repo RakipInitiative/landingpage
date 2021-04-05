@@ -644,7 +644,6 @@ private fun loadRawMetadata(modelFiles: List<File>): List<String> {
                 }
             }
         } catch (e: CombineArchiveException){
-
         }
 
     }
