@@ -14560,7 +14560,7 @@ var APPModalMTSimulations = function (_APPModal2) {
                                     }
                                     // add decimals support
                                     if (_decimals > 0) {
-                                        $input.attr('data-touchspin-decimals', true);
+                                        $input.attr('data-touchspin-decimals', _decimals);
                                     }
                                 }
                                 // add step range
@@ -16977,6 +16977,7 @@ var APPUI = function () {
 					decimals: 0,
 					initval: 0,
 					mousewheel: true,
+					min: null,
 					forcestepdivisibility : 'none',
 					step: 1
 				};
@@ -17268,7 +17269,6 @@ var APPUI = function () {
 			O._initSelect2();
 			O._initDatepicker();
 			O._initRangeslider();
-			O._initTable();
 			O._initFormValidation();
 		}
 	}, {
