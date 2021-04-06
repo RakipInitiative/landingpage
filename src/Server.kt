@@ -307,7 +307,7 @@ fun Application.module(testing: Boolean = false) {
         get("/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
-                    val imgFile = imgFiles.first { it.nameWithoutExtension == imageId }
+                    val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
                     call.response.header("Content-Disposition", "inline")
                     call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
@@ -320,7 +320,7 @@ fun Application.module(testing: Boolean = false) {
         get("/FSK-Web/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
-                    val imgFile = fskweb_imgFiles.first { it.nameWithoutExtension == imageId }
+                    val imgFile = fskweb_imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
                     call.response.header("Content-Disposition", "inline")
                     call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
@@ -332,7 +332,7 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
-                    val imgFile = rakipweb_imgFiles.first { it.nameWithoutExtension == imageId }
+                    val imgFile = rakipweb_imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
                     call.response.header("Content-Disposition", "inline")
                     call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
