@@ -13317,10 +13317,15 @@ var _sorter = {
 			}
 		});
 
-		if (response.ok) {
-            data = await response.text();
+		if (response) {
+		    if(response.ok){
+              data = await response.text();
+            }
+          else {
+              data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
+            }
         } else {
-            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
+            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + "Error: Server not responding + '</text></svg>';
         }
 
 		return data;
@@ -13373,14 +13378,16 @@ var _sorter = {
               			data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + error.text + '</text></svg>';
               		});
 
-    		if (response.ok) {
-                data = await response.text();
-            } else {
-                data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
+		if (response) {
+		    if(response.ok){
+              data = await response.text();
             }
-            //if (!response.ok) {
-
-            //}
+            else {
+              data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
+            }
+        } else {
+            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: Server not responding"   + '</text></svg>';
+        }
 
     		return data;
     	}
