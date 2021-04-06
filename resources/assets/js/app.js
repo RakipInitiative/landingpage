@@ -13317,9 +13317,11 @@ var _sorter = {
 			}
 		});
 
-		if (response) {
-			data = await response.text();
-		}
+		if (response.ok) {
+            data = await response.text();
+        } else {
+            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
+        }
 
 		return data;
 	},
@@ -13368,11 +13370,17 @@ var _sorter = {
               			if (error.name === 'AbortError') {
               				_log('cancelled', 'level1');
               			}
+              			data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + error.text + '</text></svg>';
               		});
 
-    		if (response) {
+    		if (response.ok) {
                 data = await response.text();
+            } else {
+                data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
             }
+            //if (!response.ok) {
+
+            //}
 
     		return data;
     	}
