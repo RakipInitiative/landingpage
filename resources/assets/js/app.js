@@ -13325,7 +13325,7 @@ var _sorter = {
               data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + response.status + '</text></svg>';
             }
         } else {
-            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + "Error: Server not responding + '</text></svg>';
+            data = '<svg viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg"><text x="40" y="35">' + "Error: " + "Error: Server not responding" + '</text></svg>';
         }
 
 		return data;
