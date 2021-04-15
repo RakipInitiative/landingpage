@@ -47,11 +47,11 @@ data class ModelView(
 )
 
 data class ProcessedMetadata(
-    val views: List<ModelView>,
-    val uniqueEnvironments: Set<String>,
-    val uniqueHazards: Set<String>,
-    val uniqueSoftware: Set<String>,
-    val uniqueTypes: Set<String>
+    val views: MutableList<ModelView>,
+    val uniqueEnvironments: MutableSet<String>,
+    val uniqueHazards: MutableSet<String>,
+    val uniqueSoftware: MutableSet<String>,
+    val uniqueTypes: MutableSet<String>
 )
 
 fun Application.module(testing: Boolean = false) {
@@ -79,44 +79,40 @@ fun Application.module(testing: Boolean = false) {
 
     val modelFiles: List<File>
     val filesFolder: String?
-    val imgFiles: List<File>
+    val imgFiles: MutableList<File>
     val rawMetadata: List<String>
     val processedMetadata: ProcessedMetadata?
     val parsedMetadata: List<JsonNode>
-    val fskweb_modelFiles: List<File>
+    val fskweb_modelFiles: MutableList<File>
     val fskweb_filesFolder: String?
-    val fskweb_imgFiles: List<File>
-    val fskweb_rawMetadata: List<String>
+    val fskweb_rawMetadata: MutableList<String>
     val fskweb_processedMetadata: ProcessedMetadata?
-    val fskweb_parsedMetadata: List<JsonNode>
-    val rakipweb_modelFiles: List<File>
+    val fskweb_parsedMetadata: MutableList<JsonNode>
+    val rakipweb_modelFiles: MutableList<File>
     val rakipweb_filesFolder: String?
-    val rakipweb_imgFiles: List<File>
-    val rakipweb_rawMetadata: List<String>
+    val rakipweb_rawMetadata: MutableList<String>
     val rakipweb_processedMetadata: ProcessedMetadata?
-    val rakipweb_parsedMetadata: List<JsonNode>
+    val rakipweb_parsedMetadata: MutableList<JsonNode>
     val baseUrl: String?
     val context: String
 
     if (testing) {
         modelFiles = emptyList()
         filesFolder = null
-        imgFiles = emptyList()
+        imgFiles = mutableListOf()
         rawMetadata = emptyList()
         processedMetadata = null
         parsedMetadata = emptyList()
-        fskweb_modelFiles = emptyList()
+        fskweb_modelFiles = mutableListOf()
         fskweb_filesFolder = null
-        fskweb_imgFiles = emptyList()
-        fskweb_rawMetadata = emptyList()
+        fskweb_rawMetadata = mutableListOf()
         fskweb_processedMetadata = null
-        fskweb_parsedMetadata = emptyList()
-        rakipweb_modelFiles = emptyList()
+        fskweb_parsedMetadata = mutableListOf()
+        rakipweb_modelFiles = mutableListOf()
         rakipweb_filesFolder = null
-        rakipweb_imgFiles = emptyList()
-        rakipweb_rawMetadata = emptyList()
+        rakipweb_rawMetadata = mutableListOf()
         rakipweb_processedMetadata = null
-        rakipweb_parsedMetadata = emptyList()
+        rakipweb_parsedMetadata = mutableListOf()
         baseUrl = null
         context = ""
     } else {
@@ -143,62 +139,34 @@ fun Application.module(testing: Boolean = false) {
         modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
 
         // Image files
-        imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile }.toList()
+        imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
 
         // Metadata
         rawMetadata = loadRawMetadata(modelFiles)
         parsedMetadata = rawMetadata.map { MAPPER.readTree(it) }
 
         // FSK_Web
-        // Times
-        val fskweb_timesFile = appConfiguration.getProperty("fskweb_times_csv")
-
-        File(fskweb_timesFile).readLines().forEach {
-            val tokens = it.split(",")
-            val modelId = tokens[0]
-            temporaryUploadTimes[modelId] = tokens[2]
-            temporaryExecutionTimes[modelId] = tokens[1]
-        }
-
-        val fskweb_uploadTimes = temporaryUploadTimes.toMap()
-        val fskweb_executionTimes = temporaryExecutionTimes.toMap()
 
         // Model files
         fskweb_filesFolder = appConfiguration.getProperty("fskweb_model_folder")
-        fskweb_modelFiles = File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
-
-        // Image files
-        fskweb_imgFiles = File(appConfiguration.getProperty("fskweb_plot_folder")).walk().filter { it.isFile }.toList()
+        fskweb_modelFiles = File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
 
         // Metadata
-        fskweb_rawMetadata = loadRawMetadata(fskweb_modelFiles)
-        fskweb_parsedMetadata = fskweb_rawMetadata.map { MAPPER.readTree(it) }
+        fskweb_rawMetadata = loadRawMetadata(fskweb_modelFiles).toMutableList()
+        fskweb_parsedMetadata = fskweb_rawMetadata.map { MAPPER.readTree(it) }.toMutableList()
 
 
         // RAKIP-Web
-        // Times
-        val rakipweb_timesFile = appConfiguration.getProperty("rakipweb_times_csv")
 
-        File(rakipweb_timesFile).readLines().forEach {
-            val tokens = it.split(",")
-            val modelId = tokens[0]
-            temporaryUploadTimes[modelId] = tokens[2]
-            temporaryExecutionTimes[modelId] = tokens[1]
-        }
-
-        val rakipweb_uploadTimes = temporaryUploadTimes.toMap()
-        val rakipweb_executionTimes = temporaryExecutionTimes.toMap()
 
         // Model files
         rakipweb_filesFolder = appConfiguration.getProperty("rakipweb_model_folder")
-        rakipweb_modelFiles = File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
+        rakipweb_modelFiles = File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
 
-        // Image files
-        rakipweb_imgFiles = File(appConfiguration.getProperty("rakipweb_plot_folder")).walk().filter { it.isFile }.toList()
 
         // Metadata
-        rakipweb_rawMetadata = loadRawMetadata(rakipweb_modelFiles)
-        rakipweb_parsedMetadata = rakipweb_rawMetadata.map { MAPPER.readTree(it) }
+        rakipweb_rawMetadata = loadRawMetadata(rakipweb_modelFiles).toMutableList()
+        rakipweb_parsedMetadata = rakipweb_rawMetadata.map { MAPPER.readTree(it) }.toMutableList()
 
 
 
@@ -208,8 +176,8 @@ fun Application.module(testing: Boolean = false) {
         context = appConfiguration.getProperty("context")?.let { "$it/" } ?: ""
 
         processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes, baseUrl)
-        fskweb_processedMetadata = processMetadata(fskweb_rawMetadata, fskweb_executionTimes, fskweb_uploadTimes, baseUrl)
-        rakipweb_processedMetadata = processMetadata(rakipweb_rawMetadata, rakipweb_executionTimes, rakipweb_uploadTimes, baseUrl)
+        fskweb_processedMetadata = processMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl)
+        rakipweb_processedMetadata = processMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl)
     }
 
     val representation = object {
@@ -320,7 +288,7 @@ fun Application.module(testing: Boolean = false) {
         get("/FSK-Web/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
-                    val imgFile = fskweb_imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
+                    val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
                     call.response.header("Content-Disposition", "inline")
                     call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
@@ -332,7 +300,7 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
-                    val imgFile = rakipweb_imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
+                    val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
                     call.response.header("Content-Disposition", "inline")
                     call.respondText(imgFile.readText())
                 } catch (err: IndexOutOfBoundsException) {
@@ -620,6 +588,94 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+        // endpoint to add image to the service
+        post("/addImage/{id}") {
+            call.parameters["id"]?.let { imageId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    imgFiles.add(File(appConfiguration.getProperty("plot_folder") + "/" + imageId + ".svg"))
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        // endpoint to add model ID to the service (FSK-Web)
+        post("/FSK-Web/addModel/{id}") {
+            call.parameters["id"]?.let { modelId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    val folder = appConfiguration.getProperty("fskweb_model_folder")
+                    fskweb_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
+
+                    // Metadata
+                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
+                    fskweb_rawMetadata.addAll(new_model)
+                    fskweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
+
+                    fskweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) })
+
+                    // Times
+                    val timesFile = appConfiguration.getProperty("times_csv")
+
+                    val temporaryUploadTimes = mutableMapOf<String, String>()
+                    val temporaryExecutionTimes = mutableMapOf<String, String>()
+                    File(timesFile).readLines().forEach {
+                        val tokens = it.split(",")
+                        val modelId = tokens[0]
+                        temporaryUploadTimes[modelId] = tokens[2]
+                        temporaryExecutionTimes[modelId] = tokens[1]
+                    }
+                    val executionTimes = temporaryExecutionTimes.toMap()
+                    val uploadTimes = temporaryUploadTimes.toMap()
+
+                    addProcessMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl, fskweb_processedMetadata)
+                    //fskweb_parsedMetadata.add(new_model.map { MAPPER.readTree(it) }.toMutableList())
+
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        // endpoint to add model ID to the service (FSK-Web)
+        post("/RAKIP-Web/addModel/{id}") {
+            call.parameters["id"]?.let { modelId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    val folder = appConfiguration.getProperty("rakip_model_folder")
+                    rakipweb_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
+
+                    // Metadata
+                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
+                    rakipweb_rawMetadata.addAll(new_model)
+                    rakipweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) })
+
+                    // Times
+                    val timesFile = appConfiguration.getProperty("times_csv")
+
+                    val temporaryUploadTimes = mutableMapOf<String, String>()
+                    val temporaryExecutionTimes = mutableMapOf<String, String>()
+                    File(timesFile).readLines().forEach {
+                        val tokens = it.split(",")
+                        val modelId = tokens[0]
+                        temporaryUploadTimes[modelId] = tokens[2]
+                        temporaryExecutionTimes[modelId] = tokens[1]
+                    }
+                    val executionTimes = temporaryExecutionTimes.toMap()
+                    val uploadTimes = temporaryUploadTimes.toMap()
+
+                    addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         static("/assets") {
             resources("assets")
         }
@@ -691,17 +747,70 @@ private fun processMetadata(
             uploadTime = uploadTimes[modelId] ?: "", // Get upload time from uploadTimes dictionary
             downloadUrl = baseUrl?.let { "$it/download/$index" } ?: ""
         )
-    }
+    }.toMutableList()
 
     return ProcessedMetadata(
         modelViews,
-        uniqueEnvironments = modelViews.flatMap { it.environment }.toSet(),
-        uniqueHazards = modelViews.flatMap { it.hazard }.toSet(),
-        uniqueSoftware = modelViews.map { it.software }.toSet(),
-        uniqueTypes = modelViews.map { it.modelType }.toSet()
+        uniqueEnvironments = modelViews.flatMap { it.environment }.toMutableSet(),
+        uniqueHazards = modelViews.flatMap { it.hazard }.toMutableSet(),
+        uniqueSoftware = modelViews.map { it.software }.toMutableSet(),
+        uniqueTypes = modelViews.map { it.modelType }.toMutableSet()
     )
 }
+private fun addProcessMetadata(
+        rawMetadata: List<String>,
+        executionTimes: Map<String, String>,
+        uploadTimes: Map<String, String>,
+        baseUrl: String?,
+        processedMetadata: ProcessedMetadata?
+) {
 
+    val modelViews = rawMetadata.mapIndexed { index, rawModel ->
+        val metadataTree = MAPPER.readTree(rawModel)
+        val generalInformation = metadataTree["generalInformation"]
+        val scope = metadataTree["scope"]
+
+        val modelId = generalInformation["identifier"].asText()
+
+        // RAKIP 1.0.3 workaround. 1.0.4 has name properties. If not found, try to get 1.0.3 productName.
+        val environment = if (scope.has("product")) {
+            scope["product"].map { if (it.has("name")) it["name"] else it["productName"] }.map { it.asText() }
+                    .toSet()
+        } else {
+            emptySet()
+        }
+
+        // RAKIP 1.0.3 workaround. 1.0.4 has name properties. If not found, try to get 1.0.3 hazardName.
+        val hazard = if (scope.has("hazard")) {
+            scope["hazard"].map { if (it.has("name")) it["name"] else it["hazardName"] }.map { it.asText() }.toSet()
+        } else {
+            emptySet()
+        }
+
+        ModelView(
+                modelName = generalInformation["name"].asText(),
+                modelId,
+                software = generalInformation["software"].asText(),
+                environment,
+                hazard,
+                modelType = metadataTree["modelType"].asText(),
+                durationTime = executionTimes[modelId] ?: "", // Get durationTime from executionTimes dictionary
+                uploadTime = uploadTimes[modelId] ?: "", // Get upload time from uploadTimes dictionary
+                downloadUrl = baseUrl?.let { "$it/download/$index" } ?: ""
+        )
+    }.toMutableList()
+    processedMetadata?.views?.clear()
+    processedMetadata?.uniqueEnvironments?.clear()
+    processedMetadata?.uniqueHazards?.clear()
+    processedMetadata?.uniqueSoftware?.clear()
+    processedMetadata?.uniqueTypes?.clear()
+    processedMetadata?.views?.addAll(modelViews)
+    processedMetadata?.uniqueEnvironments?.addAll(modelViews.flatMap { it.environment })
+    processedMetadata?.uniqueHazards?.addAll(modelViews.flatMap { it.hazard })
+    processedMetadata?.uniqueSoftware?.addAll(modelViews.map { it.software })
+    processedMetadata?.uniqueTypes?.addAll(modelViews.map { it.modelType })
+
+}
 data class FskModel(
     val modelScript: String,
     val visualizationScript: String?,
@@ -712,7 +821,6 @@ data class FskModel(
 )
 
 data class FskSimulation(val name: String, val parameters: LinkedHashMap<String, String>)
-
 
 fun readModel(modelFile: File): FskModel {
 
