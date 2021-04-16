@@ -139,7 +139,7 @@ fun Application.module(testing: Boolean = false) {
         modelFiles = File(filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toList()
 
         // Image files
-        imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
+        imgFiles = File(appConfiguration.getProperty("plot_folder")).walk().filter { it.isFile && it.extension == "svg" }.toMutableList()
 
         // Metadata
         rawMetadata = loadRawMetadata(modelFiles)
@@ -312,7 +312,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = modelFiles[it]
-                    val model = readModelScript(modelFile)
+                    var language = parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val model = readModelScript(modelFile, uri)
                     call.respondText(model)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -323,7 +325,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = fskweb_modelFiles[it]
-                    val model = readModelScript(modelFile)
+                    var language = fskweb_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val model = readModelScript(modelFile, uri)
                     call.respondText(model)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -334,7 +338,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = rakipweb_modelFiles[it]
-                    val model = readModelScript(modelFile)
+                    var language = rakipweb_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val model = readModelScript(modelFile, uri)
                     call.respondText(model)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -345,7 +351,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = modelFiles[it]
-                    val visualizationScript = readVisualizationScript(modelFile)
+                    var language = parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val visualizationScript = readVisualizationScript(modelFile, uri)
                     call.respondText(visualizationScript)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -356,7 +364,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = fskweb_modelFiles[it]
-                    val visualizationScript = readVisualizationScript(modelFile)
+                    var language = fskweb_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val visualizationScript = readVisualizationScript(modelFile, uri)
                     call.respondText(visualizationScript)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -367,7 +377,9 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = rakipweb_modelFiles[it]
-                    val visualizationScript = readVisualizationScript(modelFile)
+                    var language = rakipweb_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val visualizationScript = readVisualizationScript(modelFile, uri)
                     call.respondText(visualizationScript)
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
@@ -623,9 +635,9 @@ fun Application.module(testing: Boolean = false) {
                     val temporaryExecutionTimes = mutableMapOf<String, String>()
                     File(timesFile).readLines().forEach {
                         val tokens = it.split(",")
-                        val modelId = tokens[0]
-                        temporaryUploadTimes[modelId] = tokens[2]
-                        temporaryExecutionTimes[modelId] = tokens[1]
+                        val mId = tokens[0]
+                        temporaryUploadTimes[mId] = tokens[2]
+                        temporaryExecutionTimes[mId] = tokens[1]
                     }
                     val executionTimes = temporaryExecutionTimes.toMap()
                     val uploadTimes = temporaryUploadTimes.toMap()
@@ -661,14 +673,108 @@ fun Application.module(testing: Boolean = false) {
                     val temporaryExecutionTimes = mutableMapOf<String, String>()
                     File(timesFile).readLines().forEach {
                         val tokens = it.split(",")
-                        val modelId = tokens[0]
-                        temporaryUploadTimes[modelId] = tokens[2]
-                        temporaryExecutionTimes[modelId] = tokens[1]
+                        val mId = tokens[0]
+                        temporaryUploadTimes[mId] = tokens[2]
+                        temporaryExecutionTimes[mId] = tokens[1]
                     }
                     val executionTimes = temporaryExecutionTimes.toMap()
                     val uploadTimes = temporaryUploadTimes.toMap()
 
                     addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        // endpoint to remove modelf from FSK-Web repository
+        post("/FSK-Web/removeModel/{id}") {
+            call.parameters["id"]?.let { modelId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    val folder = appConfiguration.getProperty("fskweb_model_folder")
+                    
+                    fskweb_modelFiles.remove(File(folder + "/" + modelId + ".fskx"))
+
+                    // Metadata
+                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
+                    fskweb_rawMetadata.removeAll(new_model)
+                    fskweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
+
+                    fskweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) })
+
+                    // Times
+                    val timesFile = appConfiguration.getProperty("times_csv")
+
+                    val temporaryUploadTimes = mutableMapOf<String, String>()
+                    val temporaryExecutionTimes = mutableMapOf<String, String>()
+                    File(timesFile).readLines().forEach {
+                        val tokens = it.split(",")
+                        val mId = tokens[0]
+                        if(mId != modelId){
+                            temporaryUploadTimes[mId] = tokens[2]
+                            temporaryExecutionTimes[mId] = tokens[1]    
+                        }
+                    }
+                    val executionTimes = temporaryExecutionTimes.toMap()
+                    val uploadTimes = temporaryUploadTimes.toMap()
+
+                    addProcessMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl, fskweb_processedMetadata)
+
+                    File(folder + "/" + modelId + ".fskx").delete()
+                    // delete image file
+                    imgFiles.remove(File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg"))
+                    File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        // endpoint to remove modelf from RAKIP-Web repository
+        post("/RAKIP-Web/removeModel/{id}") {
+            call.parameters["id"]?.let { modelId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    val folder = appConfiguration.getProperty("rakipweb_model_folder")
+
+                    rakipweb_modelFiles.remove(File(folder + "/" + modelId + ".fskx"))
+
+                    // Metadata
+                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
+                    rakipweb_rawMetadata.removeAll(new_model)
+                    rakipweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
+
+                    rakipweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) })
+
+                    // Times
+                    val timesFile = appConfiguration.getProperty("times_csv")
+
+                    val temporaryUploadTimes = mutableMapOf<String, String>()
+                    val temporaryExecutionTimes = mutableMapOf<String, String>()
+                    File(timesFile).readLines().forEach {
+                        val tokens = it.split(",")
+                        val mId = tokens[0]
+                        if(mId != modelId){
+                            temporaryUploadTimes[mId] = tokens[2]
+                            temporaryExecutionTimes[mId] = tokens[1]
+                        }
+                    }
+                    val executionTimes = temporaryExecutionTimes.toMap()
+                    val uploadTimes = temporaryUploadTimes.toMap()
+
+                    addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
+
+
+                    File(folder + "/" + modelId + ".fskx").delete()
+                    // delete image file
+                    imgFiles.remove(File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg"))
+                    File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
+
+
                     call.respond(HttpStatusCode.Accepted)
 
                 } catch (err: IndexOutOfBoundsException) {
@@ -908,10 +1014,10 @@ private fun loadConfiguration(): Properties {
     return properties
 }
 
-private fun readModelScript(modelFile: File): String {
-    val rUri = FSKML.getURIS(1, 0, 12)["r"]!!
+private fun readModelScript(modelFile: File, uri:URI): String {
+
     return CombineArchive(modelFile).use {
-        it.getEntriesWithFormat(rUri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
+        it.getEntriesWithFormat(uri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
             val firstDescription = entry.descriptions[0]
             val metadataObject = FskMetaDataObject(firstDescription)
             metadataObject.resourceType == FskMetaDataObject.ResourceType.modelScript
@@ -919,10 +1025,10 @@ private fun readModelScript(modelFile: File): String {
     }
 }
 
-private fun readVisualizationScript(modelFile: File): String {
-    val rUri = FSKML.getURIS(1, 0, 12)["r"]!!
+private fun readVisualizationScript(modelFile: File,uri:URI): String {
+
     return CombineArchive(modelFile).use {
-        it.getEntriesWithFormat(rUri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
+        it.getEntriesWithFormat(uri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
             val firstDescription = entry.descriptions[0]
             val metadataObject = FskMetaDataObject(firstDescription)
             metadataObject.resourceType == FskMetaDataObject.ResourceType.visualizationScript
