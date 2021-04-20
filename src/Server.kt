@@ -613,6 +613,7 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
         // endpoint to add model ID to the service (FSK-Web)
         post("/FSK-Web/addModel/{id}") {
             call.parameters["id"]?.let { modelId ->
@@ -626,7 +627,6 @@ fun Application.module(testing: Boolean = false) {
                     fskweb_rawMetadata.addAll(new_model)
                     fskweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
 
-                    fskweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) })
 
                     // Times
                     val timesFile = appConfiguration.getProperty("times_csv")
@@ -658,7 +658,7 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["id"]?.let { modelId ->
                 try {
                     val appConfiguration = loadConfiguration()
-                    val folder = appConfiguration.getProperty("rakip_model_folder")
+                    val folder = appConfiguration.getProperty("rakipweb_model_folder")
                     rakipweb_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
 
                     // Metadata
@@ -703,7 +703,7 @@ fun Application.module(testing: Boolean = false) {
                     fskweb_rawMetadata.removeAll(new_model)
                     fskweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
 
-                    fskweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) })
+
 
                     // Times
                     val timesFile = appConfiguration.getProperty("times_csv")
@@ -723,10 +723,11 @@ fun Application.module(testing: Boolean = false) {
 
                     addProcessMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl, fskweb_processedMetadata)
 
-                    File(folder + "/" + modelId + ".fskx").delete()
+                    //deletion not possible on server, using knime node
+                    //File(folder + "/" + modelId + ".fskx").delete()
                     // delete image file
                     imgFiles.remove(File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg"))
-                    File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
+                    //File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
                     call.respond(HttpStatusCode.Accepted)
 
                 } catch (err: IndexOutOfBoundsException) {
@@ -748,7 +749,7 @@ fun Application.module(testing: Boolean = false) {
                     rakipweb_rawMetadata.removeAll(new_model)
                     rakipweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
 
-                    rakipweb_parsedMetadata.removeAll(new_model.map { MAPPER.readTree(it) })
+
 
                     // Times
                     val timesFile = appConfiguration.getProperty("times_csv")
@@ -768,11 +769,11 @@ fun Application.module(testing: Boolean = false) {
 
                     addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
 
-
-                    File(folder + "/" + modelId + ".fskx").delete()
+                    //deletion not possible on server, using knime node
+                    //File(folder + "/" + modelId + ".fskx").delete()
                     // delete image file
                     imgFiles.remove(File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg"))
-                    File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
+                    //File(appConfiguration.getProperty("plot_folder") + "/" + modelId + ".svg").delete()
 
 
                     call.respond(HttpStatusCode.Accepted)
