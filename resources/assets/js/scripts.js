@@ -24,8 +24,8 @@ var _appVars = {
 		nav				: [
 
 			{
-				title		: 'RAKIP Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/#/RAKIP-Web/7._FSK_Repository_Model_Runner&run'
+				title		: 'FSK Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/'
 			},
 			{
 				title		: 'Infos',
