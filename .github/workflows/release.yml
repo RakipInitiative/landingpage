@@ -1,0 +1,26 @@
+# .github/workflows/release.yml
+name: attach-war
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  attach-war:
+    name: Build and attach WAR file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull source
+        uses: actions/checkout@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Buid WAR file
+        run: ./gradlew war
+      - name: Upload to release
+        uses: JasonEtco/upload-to-release@master
+        with:
+          args: build/libs/landingpage.war application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
