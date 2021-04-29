@@ -183,6 +183,8 @@ fun Application.module(testing: Boolean = false) {
     val representation = object {
         val endpoint = baseUrl ?: ""
         val resourcesFolder = context
+        val rakip_endpoint = baseUrl ?: ""
+        val rakip_resourcesFolder = context
     }
 
     /** Helper function for retrieving execution and upload times. */
@@ -194,7 +196,9 @@ fun Application.module(testing: Boolean = false) {
         get("/") {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
-
+        get("/RAKIP-Model-Repository") {
+            call.respond(FreeMarkerContent("rakipweb.ftl", mapOf("representation" to representation), ""))
+        }
 
         get("/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
