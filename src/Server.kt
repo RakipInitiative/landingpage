@@ -197,7 +197,10 @@ fun Application.module(testing: Boolean = false) {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
         get("/RAKIP-Model-Repository") {
-            call.respond(FreeMarkerContent("rakipweb.ftl", mapOf("representation" to representation), ""))
+            //call.respond(FreeMarkerContent("rakipweb.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+            call.respondRedirect("/landingpage")
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
 
         get("/download/{i}") {

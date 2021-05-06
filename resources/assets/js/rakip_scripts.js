@@ -18,24 +18,30 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/RAKIP_logo.jpg', // false
-			title			: 'RAKIP Model Repository' // false or ''
+			logo			: 'assets/img/bfr_logo.gif', // false
+			title			: 'EFSA-BfR Model Repository' // false or ''
 		},
 		nav				: [
 
 			{
-				title		: 'RAKIP Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/7._FSK_Repository_Model_Runner?exec'
+				title		: 'RAKIP Web Portal',
+				href		: 'https://foodrisklabs.bfr.bund.de/rakip-web-portal/'
 			},
 			{
-                title		: 'Joining Models',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining/'
+				title		: 'EFSA-BfR Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/7._FSK_Repository_Model_Runner?exec'
+			},			{
+                title		: 'Joining Models (login)',
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining_examples/'
             },
 			{
-                title		: 'Other Services',
+                title		: 'Model Curation Portal (login)',
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/7._FSK_Repository_Model_Runner?exec'
+            },
+			{
+                title		: 'Other Services (login)',
             	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/'
-            },
-			{
+            },			{
 				title		: 'Contact',
 				href		: 'https://foodrisklabs.bfr.bund.de/contact_rakip/'
 			},
