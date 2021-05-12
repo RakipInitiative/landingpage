@@ -202,7 +202,12 @@ fun Application.module(testing: Boolean = false) {
             call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
+        get("/disclaimer") {
+            call.respond(FreeMarkerContent("disclaimer.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
 
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
         get("/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
