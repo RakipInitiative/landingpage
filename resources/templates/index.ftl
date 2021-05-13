@@ -10,7 +10,7 @@
     <body>
         <!-- Assign local backend -->
         <script>
-            _endpoint = "${representation.endpoint}/";
+            _endpoint = "${representation.endpoint}";
         </script>
 
         <!-- vendors js -->
