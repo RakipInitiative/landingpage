@@ -150,6 +150,7 @@ fun Application.module(testing: Boolean = false) {
         // Model files
         fskweb_filesFolder = appConfiguration.getProperty("fskweb_model_folder")
         fskweb_modelFiles = File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
+        fskweb_modelFiles.sort()
 
         // Metadata
         fskweb_rawMetadata = loadRawMetadata(fskweb_modelFiles).toMutableList()
@@ -162,7 +163,7 @@ fun Application.module(testing: Boolean = false) {
         // Model files
         rakipweb_filesFolder = appConfiguration.getProperty("rakipweb_model_folder")
         rakipweb_modelFiles = File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
-
+        rakipweb_modelFiles.sort()
 
         // Metadata
         rakipweb_rawMetadata = loadRawMetadata(rakipweb_modelFiles).toMutableList()
@@ -204,6 +205,24 @@ fun Application.module(testing: Boolean = false) {
         }
         get("/disclaimer") {
             call.respond(FreeMarkerContent("disclaimer.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/masthead") {
+            call.respond(FreeMarkerContent("masthead.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/dataProtectionDeclaration") {
+            call.respond(FreeMarkerContent("dataProtectionDeclaration.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/dataprotectionnotice") {
+            call.respond(FreeMarkerContent("dataprotectionnotice.ftl", mapOf("representation" to representation), ""))
             //call.respondText("coming soon")
 
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
