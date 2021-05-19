@@ -31,6 +31,9 @@ var _log = function _log(log, style) {
 		}
 	}
 };
+function goBack() {
+  window.history.back();
+}
 var APPLandingpage = function () {
 	function APPLandingpage(settings, $container) {
 
@@ -209,8 +212,8 @@ var APPLandingpage = function () {
             $('<p>The BfR reserves the right to modify this data protection declaration so that it always adheres to the current legal requirements. We recommend that you read our data protection declaration regularly in order to stay up to date regarding the protection of the personal data that we collect.<br></p>').appendTo(O._$container);
             // link back to main page:
 
-            var linkBack = $('<a href="' + _endpoint.slice(0, -1) + '" class="active">' + "Back To Main Page" + '</a>');
-            linkBack.appendTo(O._$container);
+            var buttonBack =$('<button onclick="goBack()">Go Back</button>');
+            buttonBack.appendTo(O._$container);
 
 
             // Footer

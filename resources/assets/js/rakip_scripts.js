@@ -19,7 +19,7 @@ var _appVars = {
 	header			: {
 		brand			: {
 			logo			: 'assets/img/bfr_logo.gif', // false
-			title			: 'EFSA-BfR Model Repository' // false or ''
+			title			: 'RAKIP-Web Model Repository' // false or ''
 		},
 		nav				: [
 
@@ -28,30 +28,30 @@ var _appVars = {
 				href		: 'https://foodrisklabs.bfr.bund.de/rakip-web-portal/'
 			},
 			{
-				title		: 'EFSA-BfR Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/7._FSK_Repository_Model_Runner?exec'
+				title		: 'RAKIP-Web Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec'
 			},			{
                 title		: 'Joining Models (login)',
             	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining_examples/'
             },
 			{
                 title		: 'Model Curation Portal (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/7._FSK_Repository_Model_Runner?exec'
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/Model_Curation/'
             },
 			{
                 title		: 'Other Services (login)',
             	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/'
             },			{
-				title		: 'Contact',
-				href		: 'https://foodrisklabs.bfr.bund.de/contact_rakip/'
+				title		: 'Masthead',
+				href		: _endpoint + 'masthead'
 			},
 			{
-				title		: 'Imprint',
-				href		: 'https://foodrisklabs.bfr.bund.de/legal-notice/'
+				title		: 'Data Protection Declaration',
+				href		: _endpoint + 'dataProtectionDeclaration'
 			},
 			{
-				title		: 'Privacy Policy',
-				href		: 'https://foodrisklabs.bfr.bund.de/disclaimer_en/'
+				title		: 'Data Protection Notice',
+				href		: _endpoint + 'dataprotectionnotice'
 			}
 		]
 	},
@@ -84,7 +84,7 @@ var _appVars = {
 					click 			: ( O, $action, rowIndex, rowData ) => {
 					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
 					    var repository = window.location.pathname.split("/").pop();
-						window.open( 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/executeModelFromRepository?exec' + "&pm:file_ID="+identifier + "&pm:repository="+repository , '_blank' );
+						window.open( 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
 					}
 				}
 			}

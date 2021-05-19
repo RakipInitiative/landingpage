@@ -31,6 +31,9 @@ var _log = function _log(log, style) {
 		}
 	}
 };
+function goBack() {
+  window.history.back();
+}
 var APPLandingpage = function () {
 	function APPLandingpage(settings, $container) {
 
@@ -143,8 +146,11 @@ var APPLandingpage = function () {
 
             // link back to main page:
 
-            var linkBack = $('<a href="' + _endpoint.slice(0, -1) + '" class="active">' + "Back To Main Page" + '</a>');
-            linkBack.appendTo(O._$container);
+            //var linkBack = $('<a href="' + window.history.back() + '" class="active">' + "Back To Main Page" + '</a>');
+
+            //linkBack.appendTo(O._$container);
+            var buttonBack =$('<button onclick="goBack()">Go Back</button>');
+            buttonBack.appendTo(O._$container);
 
 
 		}
