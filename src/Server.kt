@@ -149,7 +149,7 @@ fun Application.module(testing: Boolean = false) {
 
         // Model files
         fskweb_filesFolder = appConfiguration.getProperty("fskweb_model_folder")
-        fskweb_modelFiles = File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
+        fskweb_modelFiles = File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000 }.toMutableList()
         fskweb_modelFiles.sort()
 
         // Metadata
@@ -162,7 +162,7 @@ fun Application.module(testing: Boolean = false) {
 
         // Model files
         rakipweb_filesFolder = appConfiguration.getProperty("rakipweb_model_folder")
-        rakipweb_modelFiles = File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" }.toMutableList()
+        rakipweb_modelFiles = File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000}.toMutableList()
         rakipweb_modelFiles.sort()
 
         // Metadata
@@ -186,6 +186,8 @@ fun Application.module(testing: Boolean = false) {
         val resourcesFolder = context
         val rakip_endpoint = baseUrl ?: ""
         val rakip_resourcesFolder = context
+        val fskweb_endpoint = baseUrl ?: ""
+        val fskweb_resourcesFolder = context
     }
 
     /** Helper function for retrieving execution and upload times. */
@@ -199,6 +201,18 @@ fun Application.module(testing: Boolean = false) {
         }
         get("/RAKIP-Model-Repository") {
             call.respond(FreeMarkerContent("rakipweb.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+            //call.respondRedirect("/landingpage")
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/FSK-Web-Model-Repository") {
+            call.respond(FreeMarkerContent("curated.ftl", mapOf("representation" to representation), ""))
+            //call.respondText("coming soon")
+            //call.respondRedirect("/landingpage")
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/FSK-Model-Repository") {
+            call.respondRedirect("/landingpage/FSK-Web-Model-Repository")
             //call.respondText("coming soon")
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
@@ -240,6 +254,34 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/dataprotectionnotice") {
             call.respondRedirect("/landingpage/dataprotectionnotice")
         }
+        get("/FSK-Web/disclaimer") {
+            call.respondRedirect("/landingpage/disclaimer")
+        }
+        get("/FSK-Web/masthead") {
+            call.respondRedirect("/landingpage/masthead")
+        }
+        get("/FSK-Web/dataProtectionDeclaration") {
+            call.respondRedirect("/landingpage/dataProtectionDeclaration")
+
+        }
+        get("/FSK-Web-/dataprotectionnotice") {
+            call.respondRedirect("/landingpage/dataprotectionnotice")
+        }
+
+        get("/FSK-Web-Model-Repository/disclaimer") {
+            call.respondRedirect("/landingpage/disclaimer")
+        }
+        get("/FSK-Web-Model-Repository/masthead") {
+            call.respondRedirect("/landingpage/masthead")
+        }
+        get("/FSK-Web-Model-Repository/dataProtectionDeclaration") {
+            call.respondRedirect("/landingpage/dataProtectionDeclaration")
+
+        }
+        get("/FSK-Web-Model-Repository/dataprotectionnotice") {
+            call.respondRedirect("/landingpage/dataprotectionnotice")
+        }
+
         get("/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -276,6 +318,20 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+        get("/FSK-Web-Model-Repository/download/{i}") {
+            var curated_modelFiles: MutableList<File> = mutableListOf()
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = curated_modelFiles[it]
+                    call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
+                    call.respondFile(modelFile)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
         get("/download_dummy/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -298,6 +354,11 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/metadata") {
             call.respond(rakipweb_parsedMetadata)
         }
+
+        get("/FSK-Web-Model-Repository/metadata") {
+            call.respond(emptyList<JsonNode>())
+        }
+
         get("/metadata/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 call.respond(parsedMetadata[it])
@@ -314,6 +375,14 @@ fun Application.module(testing: Boolean = false) {
                 call.respond(rakipweb_parsedMetadata[it])
             }
         }
+
+        get("/FSK-Web-Model-Repository/metadata/{i}") {
+            var curated_parsedMetadata = mutableListOf<JsonNode>()
+            call.parameters["i"]?.toInt()?.let {
+                call.respond(curated_parsedMetadata[it])
+            }
+        }
+
 
         // Returns image where id is the model id, e.g. /image/YE2017
         get("/image/{id}") {
@@ -342,6 +411,18 @@ fun Application.module(testing: Boolean = false) {
         }
         // Returns image where id is the model id, e.g. /image/YE2017
         get("/RAKIP-Web/image/{id}") {
+            call.parameters["id"]?.let { imageId ->
+                try {
+                    val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
+                    call.response.header("Content-Disposition", "inline")
+                    call.respondText(imgFile.readText())
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        get("/FSK-Web-ModelRepository/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
                     val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
@@ -391,6 +472,15 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        get("/FSK-Web-Model-Repository/modelscript/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    call.respondText("")
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/visualizationscript/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -425,6 +515,16 @@ fun Application.module(testing: Boolean = false) {
                     var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
                     val visualizationScript = readVisualizationScript(modelFile, uri)
                     call.respondText(visualizationScript)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
+        get("/FSK-Web-Model-Repository/visualizationscript/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    call.respondText("")
                 } catch (err: IndexOutOfBoundsException) {
                     call.respond(HttpStatusCode.NotFound)
                 }
@@ -515,7 +615,18 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        post("/FSK-Web-Model-Repository/execute/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
+                            "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+                    call.respondText(svg)
 
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/search/{term}") {
             val matchingModelIndexes = mutableListOf<Int>()
             call.parameters["term"]?.let { term ->
@@ -553,6 +664,12 @@ fun Application.module(testing: Boolean = false) {
 
             call.respond(matchingModelIndexes)
         }
+
+        get("/FSK-Web-Model-Repository/search/{term}") {
+            val matchingModelIndexes = mutableListOf<Int>()
+            call.respond(matchingModelIndexes)
+        }
+
         get("/simulations/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -601,6 +718,24 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+        get("/FSK-Web-Model-Repository/simulations/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = fskweb_modelFiles[it]
+
+                    // Load metadata
+                    val metadata = CombineArchive(modelFile).use { it.loadMetadata() }
+                    val parameter = metadata["modelMath"]["parameter"]
+
+                    val simulations = readSimulations(modelFile, parameter)
+                    call.respond(simulations)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
         // endpoint to get the time for executing a default simulation
         // i = index
         get("/executionTime/{i}") {
@@ -623,6 +758,12 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+        get("/FSK-Web-Model-Repository/executionTime/{i}") {
+            call.parameters["i"]?.toInt()?.let { index ->
+                val view = getViewFskWeb(index)
+                view?.let { call.respond(it.durationTime) }
+            }
+        }
         // endpoint to get the upload Date
         // i = index
         get("/uploadDate/{i}") {
@@ -640,6 +781,13 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/uploadDate/{i}") {
             call.parameters["i"]?.toInt()?.let { index ->
                 val view = getViewRakipWeb(index)
+                view?.let { call.respond(it.uploadTime) }
+            }
+        }
+
+        get("/FSK-Web-Model-Repository/uploadDate/{i}") {
+            call.parameters["i"]?.toInt()?.let { index ->
+                val view = getViewFskWeb(index)
                 view?.let { call.respond(it.uploadTime) }
             }
         }
