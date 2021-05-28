@@ -10,7 +10,7 @@
     <body>
         <!-- Assign local backend -->
         <script>
-            _endpoint = "${representation.rakip_endpoint}/FSK-Web/";
+            _endpoint = "${representation.fskweb_endpoint}/FSK-Web/";
         </script>
         <!-- vendors js -->
         <script src="${representation.fskweb_endpoint}/assets/js/lib/jquery.3.4.1.min.js" ></script>

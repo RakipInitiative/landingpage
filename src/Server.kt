@@ -205,6 +205,12 @@ fun Application.module(testing: Boolean = false) {
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
+        get("/RAKIP-Web-Model-Repository") {
+            call.respondRedirect("/landingpage/RAKIP-Model-Repository")
+            //call.respondText("coming soon")
+            //call.respondRedirect("/landingpage")
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
         get("/FSK-Web-Model-Repository") {
             call.respond(FreeMarkerContent("curated.ftl", mapOf("representation" to representation), ""))
             //call.respondText("coming soon")
@@ -880,7 +886,90 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        // endpoint to add model ID to the service (FSK-Web)
+        post("/FSK-Web/updateRepository") {
+            try {
+                val appConfiguration = loadConfiguration()
+                val folder = appConfiguration.getProperty("fskweb_model_folder")
 
+                // clear metadata
+                fskweb_modelFiles.clear()
+                fskweb_rawMetadata.clear()
+                fskweb_parsedMetadata.clear()
+
+                // reload folder content
+                // Model files
+
+                fskweb_modelFiles.addAll(File(fskweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000}.toMutableList())
+                fskweb_modelFiles.sort()
+
+                // Metadata
+                fskweb_rawMetadata.addAll(loadRawMetadata(fskweb_modelFiles).toMutableList())
+                fskweb_parsedMetadata.addAll(fskweb_rawMetadata.map { MAPPER.readTree(it) }.toMutableList())
+
+                // Times
+                val timesFile = appConfiguration.getProperty("times_csv")
+
+                val temporaryUploadTimes = mutableMapOf<String, String>()
+                val temporaryExecutionTimes = mutableMapOf<String, String>()
+                File(timesFile).readLines().forEach {
+                    val tokens = it.split(",")
+                    val mId = tokens[0]
+                    temporaryUploadTimes[mId] = tokens[2]
+                    temporaryExecutionTimes[mId] = tokens[1]
+                }
+                val executionTimes = temporaryExecutionTimes.toMap()
+                val uploadTimes = temporaryUploadTimes.toMap()
+
+                addProcessMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl, fskweb_processedMetadata)
+                call.respond(HttpStatusCode.Accepted)
+
+            } catch (err: IndexOutOfBoundsException) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+        // endpoint to add model ID to the service (FSK-Web)
+        post("/RAKIP-Web/updateRepository") {
+            try {
+                val appConfiguration = loadConfiguration()
+                val folder = appConfiguration.getProperty("rakipweb_model_folder")
+
+                // clear metadata
+                rakipweb_modelFiles.clear()
+                rakipweb_rawMetadata.clear()
+                rakipweb_parsedMetadata.clear()
+
+                // reload folder content
+                // Model files
+
+                rakipweb_modelFiles.addAll(File(rakipweb_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000}.toMutableList())
+                rakipweb_modelFiles.sort()
+
+                // Metadata
+                rakipweb_rawMetadata.addAll(loadRawMetadata(rakipweb_modelFiles).toMutableList())
+                rakipweb_parsedMetadata.addAll(rakipweb_rawMetadata.map { MAPPER.readTree(it) }.toMutableList())
+
+                // Times
+                val timesFile = appConfiguration.getProperty("times_csv")
+
+                val temporaryUploadTimes = mutableMapOf<String, String>()
+                val temporaryExecutionTimes = mutableMapOf<String, String>()
+                File(timesFile).readLines().forEach {
+                    val tokens = it.split(",")
+                    val mId = tokens[0]
+                    temporaryUploadTimes[mId] = tokens[2]
+                    temporaryExecutionTimes[mId] = tokens[1]
+                }
+                val executionTimes = temporaryExecutionTimes.toMap()
+                val uploadTimes = temporaryUploadTimes.toMap()
+
+                addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
+                call.respond(HttpStatusCode.Accepted)
+
+            } catch (err: IndexOutOfBoundsException) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
         // endpoint to remove modelf from FSK-Web repository
         post("/FSK-Web/removeModel/{id}") {
             call.parameters["id"]?.let { modelId ->
