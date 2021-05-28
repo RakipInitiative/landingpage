@@ -18,8 +18,8 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/RAKIP_logo.jpg', // false
-			title			: 'Model Repository (Beta)' // false or ''
+			logo			: 'assets/img/bfr_logo.gif', // false
+			title			: 'Disclaimer' // false or ''
 		},
 		nav				: [
 
@@ -28,30 +28,30 @@ var _appVars = {
 				href		: 'https://foodrisklabs.bfr.bund.de/rakip-web-portal/'
 			},
 			{
-				title		: 'RAKIP-Web Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec'
+				title		: 'EFSA-BfR Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/7._FSK_Repository_Model_Runner?exec'
 			},			{
                 title		: 'Joining Models (login)',
             	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining_examples/'
             },
 			{
                 title		: 'Model Curation Portal (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/Model_Curation/'
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/7._FSK_Repository_Model_Runner?exec'
             },
 			{
                 title		: 'Other Services (login)',
             	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/'
             },			{
-				title		: 'Masthead',
-				href		: _endpoint + 'masthead'
+				title		: 'Contact',
+				href		: _endpoint + 'disclaimer'
 			},
 			{
-				title		: 'Data Protection Declaration',
-				href		: _endpoint + 'dataProtectionDeclaration'
+				title		: 'Imprint',
+				href		: _endpoint + 'disclaimer'
 			},
 			{
-				title		: 'Data Protection Notice',
-				href		: _endpoint + 'dataprotectionnotice'
+				title		: 'Privacy Policy',
+				href		: _endpoint + 'disclaimer'
 			}
 		]
 	},
@@ -76,12 +76,25 @@ var _appVars = {
 				}
 			},
 			{
-				type 			: 'modal',
+				type 			: 'link',
 				idPrefix 		: 'mtActionSim_',
 				icon			: 'icon-play',
 				title 			: 'Simulation',
-				target			: '#mtModalSim'
+				on 				: {
+					click 			: ( O, $action, rowIndex, rowData ) => {
+					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
+					    var repository = window.location.pathname.split("/").pop();
+						window.open( 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/executeModelFromRepository?exec' + "&pm:file_ID="+identifier + "&pm:repository="+repository , '_blank' );
+					}
+				}
 			}
+//			{
+//				type 			: 'modal',
+//				idPrefix 		: 'mtActionSim_',
+//				icon			: 'icon-play',
+//				title 			: 'Simulation',
+//				target			: '#mtModalSim'
+//			}
 		],
 		cols 			: [
 			{

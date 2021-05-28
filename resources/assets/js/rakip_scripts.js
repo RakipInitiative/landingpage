@@ -18,8 +18,8 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/RAKIP_logo.jpg', // false
-			title			: 'Model Repository (Beta)' // false or ''
+			logo			: 'assets/img/bfr_logo.gif', // false
+			title			: 'RAKIP-Web Model Repository' // false or ''
 		},
 		nav				: [
 
@@ -76,12 +76,25 @@ var _appVars = {
 				}
 			},
 			{
-				type 			: 'modal',
+				type 			: 'link',
 				idPrefix 		: 'mtActionSim_',
 				icon			: 'icon-play',
 				title 			: 'Simulation',
-				target			: '#mtModalSim'
+				on 				: {
+					click 			: ( O, $action, rowIndex, rowData ) => {
+					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
+					    var repository = window.location.pathname.split("/").pop();
+						window.open( 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
+					}
+				}
 			}
+//			{
+//				type 			: 'modal',
+//				idPrefix 		: 'mtActionSim_',
+//				icon			: 'icon-play',
+//				title 			: 'Simulation',
+//				target			: '#mtModalSim'
+//			}
 		],
 		cols 			: [
 			{

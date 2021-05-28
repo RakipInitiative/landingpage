@@ -18,8 +18,8 @@ var _endpoints 	= {
 var _appVars = {
 	header			: {
 		brand			: {
-			logo			: 'assets/img/RAKIP_logo.jpg', // false
-			title			: 'Model Repository (Beta)' // false or ''
+			logo			: 'assets/img/bfr_logo.gif', // false
+			title			: 'FSK-Web Model Repository' // false or ''
 		},
 		nav				: [
 
@@ -28,11 +28,11 @@ var _appVars = {
 				href		: 'https://foodrisklabs.bfr.bund.de/rakip-web-portal/'
 			},
 			{
-				title		: 'RAKIP-Web Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec'
+				title		: 'FSK-Web Model Repository (login)',
+				href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/Model_Execution?exec'
 			},			{
                 title		: 'Joining Models (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining_examples/'
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/joining_examples/'
             },
 			{
                 title		: 'Model Curation Portal (login)',
@@ -40,7 +40,7 @@ var _appVars = {
             },
 			{
                 title		: 'Other Services (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/'
+            	href		: 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/'
             },			{
 				title		: 'Masthead',
 				href		: _endpoint + 'masthead'
@@ -76,12 +76,25 @@ var _appVars = {
 				}
 			},
 			{
-				type 			: 'modal',
+				type 			: 'link',
 				idPrefix 		: 'mtActionSim_',
 				icon			: 'icon-play',
 				title 			: 'Simulation',
-				target			: '#mtModalSim'
+				on 				: {
+					click 			: ( O, $action, rowIndex, rowData ) => {
+					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
+					    var repository = window.location.pathname.split("/").pop();
+						window.open( 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
+					}
+				}
 			}
+//			{
+//				type 			: 'modal',
+//				idPrefix 		: 'mtActionSim_',
+//				icon			: 'icon-play',
+//				title 			: 'Simulation',
+//				target			: '#mtModalSim'
+//			}
 		],
 		cols 			: [
 			{
