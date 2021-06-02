@@ -8,24 +8,24 @@ $(document).ready(function(){
 			$footer.div.col.p2 = $('<p id="footer_p" class="text-center text-md-center mt-1 mb-0"><a href="https://www.efsa.europa.eu/en"><img src="'+ _appVars.footer_efsa_logo + '" alt="EU emblem" width="26" height="18"></a> <span class="align-middle">EFSA is an agency of the European Union </span><img src="'+ _appVars.footer_eu_logo + '" alt="EU emblem" width="26" height="18"></p>').appendTo($footer.div.col);
 			$footer.appendTo(document.body);
 });
- $(function(){
-          //Keep track of last scroll
-          var lastScroll = 0;
-          $(window).scroll(function(event){
-              //Sets the current scroll position
-              var st = $(this).scrollTop();
+$(function(){
+      //Keep track of last scroll
+      var lastScroll = 0;
+      $(window).scroll(function(event){
+          //Sets the current scroll position
+          var st = $(this).scrollTop();
 
-              //Determines up-or-down scrolling
-              if (st > lastScroll){
-                $(".footer").css("display",'inline')
-              } 
-              if(st == 0){
-                $(".footer").css("display",'none')
-              }
-              //Updates scroll position
-              lastScroll = st;
-          });
-        });
+          //Determines up-or-down scrolling
+          if (st > lastScroll){
+            $(".footer").css("display",'inline')
+          }
+          if(st == 0){
+            $(".footer").css("display",'none')
+          }
+          //Updates scroll position
+          lastScroll = st;
+      });
+    });
 
 
 
