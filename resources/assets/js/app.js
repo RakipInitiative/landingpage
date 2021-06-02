@@ -16993,6 +16993,7 @@ var APPUI = function () {
 					initval: 0,
 					mousewheel: true,
 					min: null,
+					max: null,
 					forcestepdivisibility : 'none',
 					step: 1
 				};

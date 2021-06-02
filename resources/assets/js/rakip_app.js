@@ -17379,6 +17379,8 @@ var APPLandingpage = function () {
 				// error no endpoints
 				_appUI._createAlert('Cannot create main table, no endpoints defined', {}, O._$container);
 			}
+			
+
 		}
 
 		/**
@@ -17440,7 +17442,7 @@ var APPLandingpage = function () {
 
 			return $header;
 		}
-	}, {
+	},{
 		key: 'opts',
 		get: function get() {
 			return this._opts;
@@ -17452,3 +17454,5 @@ var APPLandingpage = function () {
 
 	return APPLandingpage;
 }();
+
+

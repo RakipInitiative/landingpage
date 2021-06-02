@@ -24,5 +24,10 @@
         </script>
 
         <div class="landingpage pt-0"></div>
+        <script>
+            _appVars.footer_eu_logo = "${representation.rakip_endpoint}/assets/img/eu_logo.png";
+            _appVars.footer_efsa_logo = "${representation.rakip_endpoint}/assets/img/efsa_logo.svg";
+        </script>
+        <script src="${representation.rakip_endpoint}/assets/js/footer.js"></script>
     </body>
 </html>
