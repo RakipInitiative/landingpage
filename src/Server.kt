@@ -1067,6 +1067,41 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+        /*
+         * Body parameter: form data:
+         * - file: Binary object
+         * - user: User name (string)
+         */
+        post("/validate") {
+            val multipartData = call.receiveMultipart()
+
+            var file: File? = null
+            multipartData.forEachPart { part ->
+                // if part is a file (could be form item)
+                if (part is PartData.FileItem) {
+                    // retrieve file name of upload
+                    val name = part.originalFileName!!
+
+                    val fileCopy = kotlin.io.path.createTempFile(TEMP_FOLDER, name).toFile()
+                    fileCopy.deleteOnExit()
+
+                    val fileBytes = part.streamProvider().readBytes()
+                    fileCopy.writeBytes(fileBytes)
+
+                    file = fileCopy
+                }
+                // make sure to dispose of the part after use to prevent leaks
+                part.dispose()
+            }
+
+            if (file != null) {
+                val validationResult = validate(file!!)
+                call.respond(validationResult)
+            }
+        }
+
+
         static("/assets") {
             resources("assets")
         }
