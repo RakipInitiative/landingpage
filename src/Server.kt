@@ -3,8 +3,15 @@ package de.bund.bfr.landingpage
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import de.bund.bfr.fskml.FSKML
+import de.bund.bfr.fskml.FskMetaDataObject
+import de.bund.bfr.rakip.validator.CodeChecker
+import de.bund.bfr.rakip.validator.CombineArchiveChecker
+import de.bund.bfr.rakip.validator.StructureChecker
+import de.bund.bfr.rakip.validator.ValidationResult
 import de.unirostock.sems.cbarchive.ArchiveEntry
 import de.unirostock.sems.cbarchive.CombineArchive
+import de.unirostock.sems.cbarchive.CombineArchiveException
 import freemarker.cache.ClassTemplateLoader
 import io.ktor.application.*
 import io.ktor.features.*
@@ -12,16 +19,11 @@ import io.ktor.freemarker.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.jackson.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import java.io.File
-import java.net.URI
-import de.bund.bfr.fskml.FSKML
-import de.bund.bfr.fskml.FskMetaDataObject
-import de.unirostock.sems.cbarchive.CombineArchiveException
-import io.ktor.request.*
 import org.jdom.Text
 import org.jlibsedml.ChangeAttribute
 import org.jlibsedml.Libsedml
@@ -29,8 +31,9 @@ import org.jlibsedml.SEDMLTags
 import org.jlibsedml.SedML
 import org.renjin.script.RenjinScriptEngine
 import org.renjin.script.RenjinScriptEngineFactory
+import java.io.File
+import java.net.URI
 import java.util.*
-import kotlin.collections.LinkedHashMap
 
 val MAPPER = ObjectMapper()
 
@@ -1499,6 +1502,24 @@ fun FskModel.runSelectedSimulation(engine: RenjinScriptEngine, userDefinedSim: F
     val parameterScript = builder.toString()
 
     engine.eval(parameterScript)
+}
+
+private fun validate(file: File): ValidationResult {
+
+    val combineArchiveCheck = CombineArchiveChecker().check(file)
+    if (combineArchiveCheck.error.isNotEmpty()) {
+        return ValidationResult(false, listOf(combineArchiveCheck))
+    }
+
+    val structureCheck = StructureChecker().check(file)
+    if (structureCheck.error.isNotEmpty()) {
+        return ValidationResult(structureCheck.error.isEmpty(), listOf(combineArchiveCheck, structureCheck))
+    }
+
+    else {
+        val codeCheck = CodeChecker().check(file)
+        return ValidationResult(codeCheck.error.isEmpty(), listOf(combineArchiveCheck, structureCheck, codeCheck))
+    }
 }
 
 fun main() {
