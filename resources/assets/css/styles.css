@@ -15674,3 +15674,20 @@ pre span:before {
               box-shadow: 0 0 0 0.75rem rgba(17, 160, 204, 0.3); }
     .irs--flat .irs-handle i:first-child {
       background-color: transparent !important; }
+.footer{
+    position:fixed;
+    padding-bottom:-10px;
+     bottom:0px;
+     color: black;
+    background-color:#F7F7FB;
+    width: 100%;
+    text-align: center;
+    margin-top:auto;
+    flex: 0 0 50px;
+}
+#footer_p{
+    margin: 0 !important;
+}
+body{
+    margin-bottom:50px;
+}
