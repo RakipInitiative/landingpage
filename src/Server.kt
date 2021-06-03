@@ -1178,7 +1178,7 @@ private fun addProcessMetadata(
         ModelView(
                 modelName = generalInformation["name"].asText(),
                 modelId,
-                software = generalInformation["software"].asText(),
+                software = generalInformation["software"]?.asText()?:"R",
                 environment,
                 hazard,
                 modelType = metadataTree["modelType"].asText(),
