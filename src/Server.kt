@@ -29,11 +29,13 @@ import org.jlibsedml.ChangeAttribute
 import org.jlibsedml.Libsedml
 import org.jlibsedml.SEDMLTags
 import org.jlibsedml.SedML
+
 import org.renjin.script.RenjinScriptEngine
 import org.renjin.script.RenjinScriptEngineFactory
 import java.io.File
 import java.net.URI
 import java.util.*
+
 
 val MAPPER = ObjectMapper()
 
@@ -79,6 +81,9 @@ fun Application.module(testing: Boolean = false) {
         allowCredentials = true
         anyHost()
     }
+
+    val TEMP_FOLDER = createTempDir("uploads")
+    TEMP_FOLDER.deleteOnExit()
 
     val modelFiles: List<File>
     val filesFolder: String?
@@ -1083,7 +1088,7 @@ fun Application.module(testing: Boolean = false) {
                     // retrieve file name of upload
                     val name = part.originalFileName!!
 
-                    val fileCopy = kotlin.io.path.createTempFile(TEMP_FOLDER, name).toFile()
+                    val fileCopy = createTempFile(suffix=name, directory = TEMP_FOLDER)
                     fileCopy.deleteOnExit()
 
                     val fileBytes = part.streamProvider().readBytes()
