@@ -16152,15 +16152,17 @@ var APPTableMT = function (_APPTable) {
 			_log('TABLE MAIN / _createData');
 
 			O._metadata = await _fetchData._json(_endpoints.metadata); //O._app._getMetadata();
-			O._uploadDates = await _fetchData._array(_endpoints.uploadDate, O._metadata.length); //O._app._getUploadDates( _endpoints.uploadDate, O._metadata.length );
-			O._executionTimes = await _fetchData._array(_endpoints.executionTime, O._metadata.length); //O._app._getExecutionTimes( _endpoints.executionTime, O._metadata.length );
-
+			//O._uploadDates = await _fetchData._array(_endpoints.uploadDate, O._metadata.length); //O._app._getUploadDates( _endpoints.uploadDate, O._metadata.length );
+			O._uploadDates = await _fetchData._json(_endpoints.uploadDate); //O._app._getUploadDates( _endpoints.uploadDate, O._metadata.length );
+			//O._executionTimes = await _fetchData._array(_endpoints.executionTime, O._metadata.length); //O._app._getExecutionTimes( _endpoints.executionTime, O._metadata.length );
+            O._executionTimes = await _fetchData._json(_endpoints.executionTime);//await _fetchData._array(_endpoints.executionTime, O._metadata.length); //O._app._getExecutionTimes( _endpoints.executionTime, O._metadata.length );
 			// prepare table data
 			O._tableData = [];
 
 			var _loop2 = function _loop2(i) {
 
 				var modelMetadata = O._metadata[i]; // full metadata of model
+				var identifier = modelMetadata['generalInformation']['identifier']
 				var rowData = {
 					modelMetadata: modelMetadata, // storess full model metadata for callbacks/hooks
 					cells: [], // will contain raw cell value
@@ -16193,9 +16195,9 @@ var APPTableMT = function (_APPTable) {
 					} else if (col.field == 'modelType') {
 						data = modelMetadata['modelType'];
 					} else if (col.field == 'executionTime') {
-						data = O._executionTimes[i];
+                        data = O._executionTimes[identifier]? O._executionTimes[identifier] :"";
 					} else if (col.field == 'uploadDate') {
-						data = O._uploadDates[i];
+						data = O._uploadDates[identifier]? O._uploadDates[identifier] :"";
 					}
 
 					rowData.cells.push(data);

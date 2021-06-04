@@ -12,7 +12,7 @@ var _endpoints 	= {
 	filter 			: _endpoint + 'filter',
 	metadata		: _endpoint + 'metadata/',
     modelScript     : _endpoint + "modelscript/",
-    visScript       : _endpoint + "visualizationscript/",
+    visScript       : _endpoint + "visualizationscript/"
 };
 
 var _appVars = {

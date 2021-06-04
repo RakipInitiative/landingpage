@@ -742,6 +742,68 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+        get("/executionTime") {
+            try{
+                val appConfiguration = loadConfiguration()
+                // Times
+                val timesFile = appConfiguration.getProperty("times_csv")
+
+                val temporaryUploadTimes = mutableMapOf<String, String>()
+                val temporaryExecutionTimes = mutableMapOf<String, String>()
+                File(timesFile).readLines().forEach {
+                    val tokens = it.split(",")
+                    val mId = tokens[0]
+                    temporaryUploadTimes[mId] = tokens[2]
+                    temporaryExecutionTimes[mId] = tokens[1]
+                }
+                val executionTimes = temporaryExecutionTimes.toMap()
+                val uploadTimes = temporaryUploadTimes.toMap()
+                call.respond(executionTimes)
+            } catch (err: NullPointerException) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+
+        }
+        get("/FSK-Web/executionTime") {
+            call.respondRedirect("/landingpage/executionTime")
+        }
+        get("/RAKIP-Web/executionTime") {
+            call.respondRedirect("/landingpage/executionTime")
+        }
+        get("/FSK-Web-Model-Repository/executionTime") {
+            call.respondRedirect("/landingpage/executionTime")
+        }
+        get("/uploadDate") {
+            try{
+                val appConfiguration = loadConfiguration()
+                // Times
+                val timesFile = appConfiguration.getProperty("times_csv")
+
+                val temporaryUploadTimes = mutableMapOf<String, String>()
+                val temporaryExecutionTimes = mutableMapOf<String, String>()
+                File(timesFile).readLines().forEach {
+                    val tokens = it.split(",")
+                    val mId = tokens[0]
+                    temporaryUploadTimes[mId] = tokens[2]
+                    temporaryExecutionTimes[mId] = tokens[1]
+                }
+                val executionTimes = temporaryExecutionTimes.toMap()
+                val uploadTimes = temporaryUploadTimes.toMap()
+                call.respond(uploadTimes)
+            } catch (err: NullPointerException) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+
+        }
+        get("/FSK-Web/uploadDate") {
+            call.respondRedirect("/landingpage/uploadDate")
+        }
+        get("/RAKIP-Web/uploadDate") {
+            call.respondRedirect("/landingpage/uploadDate")
+        }
+        get("/FSK-Web-Model-Repository/uploadDate") {
+            call.respondRedirect("/landingpage/uploadDate")
+        }
         // endpoint to get the time for executing a default simulation
         // i = index
         get("/executionTime/{i}") {

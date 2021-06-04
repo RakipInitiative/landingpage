@@ -17,7 +17,7 @@
         <!-- bfr data js -->
         <script src="${representation.rakip_endpoint}/assets/js/editor_data.js"></script>
         <!-- bfr app js -->
-        <script src="${representation.rakip_endpoint}/assets/js/rakip_app.js"></script>
+        <script src="${representation.rakip_endpoint}/assets/js/app.js"></script>
         <!-- page script for initializing app -->
         <script src="${representation.rakip_endpoint}/assets/js/rakip_scripts.js"></script>
         <script>
