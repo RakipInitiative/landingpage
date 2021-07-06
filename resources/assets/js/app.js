@@ -16463,6 +16463,11 @@ var APPTableMT = function (_APPTable) {
 					// match = true : will be shown
 					var rowMatchesFilter = true;
 
+                    // if no matches are found at all, set rowMatchesFilter to false
+                    if (searchResult.length == 0){
+                        rowMatchesFilter = false;
+                    }
+
 					// filter by search
 					if (searchResult.length > 0 && !searchResult.includes(rowIndex)) {
 						rowMatchesFilter = false;
