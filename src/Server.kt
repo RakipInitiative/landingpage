@@ -526,7 +526,42 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
-
+        get("/readme/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = modelFiles[it]
+                    var uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                    val readme = readReadMe(modelFile, uri)
+                    call.respondText(readme)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        get("/FSK-Web/readme/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = fskweb_modelFiles[it]
+                    var uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                    val readme = readReadMe(modelFile, uri)
+                    call.respondText(readme)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        get("/RAKIP-Web/readme/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = rakipweb_modelFiles[it]
+                    var uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                    val readme = readReadMe(modelFile, uri)
+                    call.respondText(readme)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/FSK-Web-Model-Repository/visualizationscript/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -1379,7 +1414,16 @@ private fun readVisualizationScript(modelFile: File,uri:URI): String {
         }.loadTextEntry()
     }
 }
+private fun readReadMe(modelFile: File,uri:URI): String {
 
+    return CombineArchive(modelFile).use {
+        it.getEntriesWithFormat(uri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
+            val firstDescription = entry.descriptions[0]
+            val metadataObject = FskMetaDataObject(firstDescription)
+            metadataObject.resourceType == FskMetaDataObject.ResourceType.readme
+        }.loadTextEntry()
+    }
+}
 private fun readSimulations(modelFile: File, parameterMetadata: JsonNode): List<FskSimulation> {
 
     val sedmlUri: URI = FSKML.getURIS(1, 0, 12)["sedml"]!!

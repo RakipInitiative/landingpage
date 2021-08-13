@@ -22,38 +22,35 @@ var _appVars = {
 			title			: 'RAKIP-Web Model Repository' // false or ''
 		},
 		nav				: [
-
-			{
-				title		: 'RAKIP Web Portal',
-				href		: 'https://foodrisklabs.bfr.bund.de/rakip-web-portal/'
-			},
-			{
-				title		: 'RAKIP-Web Model Repository (login)',
-				href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec'
-			},			{
-                title		: 'Joining Models (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/joining_examples/'
-            },
-			{
-                title		: 'Model Curation Portal (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/Model_Curation/'
-            },
-			{
-                title		: 'Other Services (login)',
-            	href		: 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/'
-            },			{
-				title		: 'Masthead',
-				href		: _endpoint + 'masthead'
-			},
-			{
-				title		: 'Data Protection Declaration',
-				href		: _endpoint + 'dataProtectionDeclaration'
-			},
-			{
-				title		: 'Data Protection Notice',
-				href		: _endpoint + 'dataprotectionnotice'
-			}
-		]
+                          {
+                             "title": "FSK-Web Home",
+                             "href": "https://knime.bfr.berlin/landingpage/FSK-Web-Model-Repository/"
+                          },
+                          {
+                             "title": "RAKIP-Web Home",
+                             "href": "https://knime.bfr.berlin/landingpage/RAKIP-Model-Repository/"
+                           },
+                           {
+                             "title": "FSK-Web Protected Area",
+                             "href": "https://foodrisklabs.bfr.bund.de/overview-of-fsk-web-protected-area-services/"
+                           },
+                           {
+                             "title": "FSK-Web Details",
+                             "href": "https://foodrisklabs.bfr.bund.de/functional-details/"
+                           },
+                           {
+                             "title": "FSK-Lab Software",
+                             "href": "https://foodrisklabs.bfr.bund.de/fsk-lab/"
+                           },
+                           {
+                             "title": "Masthead",
+                             "href": "https://knime.bfr.berlin/landingpage/masthead"
+                           },
+                           {
+                             "title": "Data Protection Declaration",
+                             "href": "https://knime.bfr.berlin/landingpage/dataProtectionDeclaration"
+                           }
+                          ]
 	},
 	mainTable 			: {
 		rowActions 		: [
