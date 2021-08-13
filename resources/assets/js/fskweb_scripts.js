@@ -13,6 +13,7 @@ var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
     modelScript     : _endpoint + "modelscript/",
     visScript       : _endpoint + "visualizationscript/",
+     readMe          : _endpoint + "readme/"
 };
 
 var _appVars = {

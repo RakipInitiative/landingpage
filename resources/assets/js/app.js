@@ -11719,7 +11719,7 @@ date: 08.12.2020
 */
 
 var ModelHandler = function () {
-	function ModelHandler(metadata, img, modelScript, visScript ) {
+	function ModelHandler(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, ModelHandler);
 
 		this._metadata = metadata;
@@ -11727,8 +11727,9 @@ var ModelHandler = function () {
 		this._menu = [];
 		this._img = img;
 		this._modelScript = modelScript;
-        this._visScript = visScript;
-        this.panels = {};
+		this._visScript = visScript;
+		this.readme = readme;
+		this.panels = {};
 	}
 
 	_createClass(ModelHandler, [{
@@ -11852,10 +11853,10 @@ var ModelHandler = function () {
 var GenericModel = function (_ModelHandler) {
 	_inherits(GenericModel, _ModelHandler);
 
-	function GenericModel(metadata, img, modelScript, visScript) {
+	function GenericModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, GenericModel);
 
-		var _this = _possibleConstructorReturn(this, (GenericModel.__proto__ || Object.getPrototypeOf(GenericModel)).call(this, metadata, img, modelScript, visScript));
+		var _this = _possibleConstructorReturn(this, (GenericModel.__proto__ || Object.getPrototypeOf(GenericModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this._schema = schemas.genericModel;
 		_this._menu = [{
@@ -12039,10 +12040,10 @@ var GenericModel = function (_ModelHandler) {
 var DataModel = function (_ModelHandler2) {
 	_inherits(DataModel, _ModelHandler2);
 
-	function DataModel(metadata, img, modelScript, visScript) {
+	function DataModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, DataModel);
 
-		var _this2 = _possibleConstructorReturn(this, (DataModel.__proto__ || Object.getPrototypeOf(DataModel)).call(this, metadata, img, modelScript, visScript));
+		var _this2 = _possibleConstructorReturn(this, (DataModel.__proto__ || Object.getPrototypeOf(DataModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this2._schema = schemas.dataModel;
 		_this2._menu = [{
@@ -12126,10 +12127,10 @@ var DataModel = function (_ModelHandler2) {
 var PredictiveModel = function (_ModelHandler3) {
 	_inherits(PredictiveModel, _ModelHandler3);
 
-	function PredictiveModel(metadata, img, modelScript, visScript) {
+	function PredictiveModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, PredictiveModel);
 
-		var _this3 = _possibleConstructorReturn(this, (PredictiveModel.__proto__ || Object.getPrototypeOf(PredictiveModel)).call(this, metadata, img, modelScript, visScript));
+		var _this3 = _possibleConstructorReturn(this, (PredictiveModel.__proto__ || Object.getPrototypeOf(PredictiveModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this3._schema = schemas.predictiveModel;
 		_this3._menu = [{
@@ -12207,10 +12208,10 @@ var PredictiveModel = function (_ModelHandler3) {
 var OtherModel = function (_ModelHandler4) {
 	_inherits(OtherModel, _ModelHandler4);
 
-	function OtherModel(metadata, img, modelScript, visScript) {
+	function OtherModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, OtherModel);
 
-		var _this4 = _possibleConstructorReturn(this, (OtherModel.__proto__ || Object.getPrototypeOf(OtherModel)).call(this, metadata, img, modelScript, visScript));
+		var _this4 = _possibleConstructorReturn(this, (OtherModel.__proto__ || Object.getPrototypeOf(OtherModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this4._schema = schemas.otherModel;
 		_this4._menu = [{
@@ -12303,10 +12304,10 @@ var OtherModel = function (_ModelHandler4) {
 var DoseResponseModel = function (_ModelHandler5) {
 	_inherits(DoseResponseModel, _ModelHandler5);
 
-	function DoseResponseModel(metadata, img, modelScript, visScript) {
+	function DoseResponseModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, DoseResponseModel);
 
-		var _this5 = _possibleConstructorReturn(this, (DoseResponseModel.__proto__ || Object.getPrototypeOf(DoseResponseModel)).call(this, metadata, img, modelScript, visScript));
+		var _this5 = _possibleConstructorReturn(this, (DoseResponseModel.__proto__ || Object.getPrototypeOf(DoseResponseModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this5._schema = schemas.doseResponseModel;
 		_this5._menu = [{
@@ -12426,10 +12427,10 @@ var DoseResponseModel = function (_ModelHandler5) {
 var ToxicologicalModel = function (_ModelHandler6) {
 	_inherits(ToxicologicalModel, _ModelHandler6);
 
-	function ToxicologicalModel(metadata, img, modelScript, visScript) {
+	function ToxicologicalModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, ToxicologicalModel);
 
-		var _this6 = _possibleConstructorReturn(this, (ToxicologicalModel.__proto__ || Object.getPrototypeOf(ToxicologicalModel)).call(this, metadata, img, modelScript, visScript));
+		var _this6 = _possibleConstructorReturn(this, (ToxicologicalModel.__proto__ || Object.getPrototypeOf(ToxicologicalModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this6._schema = schemas.toxicologicalModel;
 		_this6._menu = [{
@@ -12550,10 +12551,10 @@ var ToxicologicalModel = function (_ModelHandler6) {
 var ExposureModel = function (_ModelHandler7) {
 	_inherits(ExposureModel, _ModelHandler7);
 
-	function ExposureModel(metadata, img, modelScript, visScript) {
+	function ExposureModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, ExposureModel);
 
-		var _this7 = _possibleConstructorReturn(this, (ExposureModel.__proto__ || Object.getPrototypeOf(ExposureModel)).call(this, metadata, img, modelScript, visScript));
+		var _this7 = _possibleConstructorReturn(this, (ExposureModel.__proto__ || Object.getPrototypeOf(ExposureModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this7._schema = schemas.exposureModel;
 		_this7._menu = [{
@@ -12652,10 +12653,10 @@ var ExposureModel = function (_ModelHandler7) {
 var ProcessModel = function (_ModelHandler8) {
 	_inherits(ProcessModel, _ModelHandler8);
 
-	function ProcessModel(metadata, img, modelScript, visScript) {
+	function ProcessModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, ProcessModel);
 
-		var _this8 = _possibleConstructorReturn(this, (ProcessModel.__proto__ || Object.getPrototypeOf(ProcessModel)).call(this, metadata, img, modelScript, visScript));
+		var _this8 = _possibleConstructorReturn(this, (ProcessModel.__proto__ || Object.getPrototypeOf(ProcessModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this8._schema = schemas.processModel;
 		_this8._menu = [{
@@ -12739,10 +12740,10 @@ var ProcessModel = function (_ModelHandler8) {
 var ConsumptionModel = function (_ModelHandler9) {
 	_inherits(ConsumptionModel, _ModelHandler9);
 
-	function ConsumptionModel(metadata, img, modelScript, visScript) {
+	function ConsumptionModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, ConsumptionModel);
 
-		var _this9 = _possibleConstructorReturn(this, (ConsumptionModel.__proto__ || Object.getPrototypeOf(ConsumptionModel)).call(this, metadata, img, modelScript, visScript));
+		var _this9 = _possibleConstructorReturn(this, (ConsumptionModel.__proto__ || Object.getPrototypeOf(ConsumptionModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this9._schema = schemas.consumptionModel;
 		_this9._menu = [{
@@ -12829,10 +12830,10 @@ var ConsumptionModel = function (_ModelHandler9) {
 var HealthModel = function (_ModelHandler10) {
 	_inherits(HealthModel, _ModelHandler10);
 
-	function HealthModel(metadata, img, modelScript, visScript) {
+	function HealthModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, HealthModel);
 
-		var _this10 = _possibleConstructorReturn(this, (HealthModel.__proto__ || Object.getPrototypeOf(HealthModel)).call(this, metadata, img, modelScript, visScript));
+		var _this10 = _possibleConstructorReturn(this, (HealthModel.__proto__ || Object.getPrototypeOf(HealthModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this10._schema = schemas.healthModel;
 		_this10._menu = [{
@@ -12924,10 +12925,10 @@ var HealthModel = function (_ModelHandler10) {
 var RiskModel = function (_ModelHandler11) {
 	_inherits(RiskModel, _ModelHandler11);
 
-	function RiskModel(metadata, img, modelScript, visScript) {
+	function RiskModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, RiskModel);
 
-		var _this11 = _possibleConstructorReturn(this, (RiskModel.__proto__ || Object.getPrototypeOf(RiskModel)).call(this, metadata, img, modelScript, visScript));
+		var _this11 = _possibleConstructorReturn(this, (RiskModel.__proto__ || Object.getPrototypeOf(RiskModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this11._schema = schemas.riskModel;
 		_this11._menu = [{
@@ -13026,10 +13027,10 @@ var RiskModel = function (_ModelHandler11) {
 var QraModel = function (_ModelHandler12) {
 	_inherits(QraModel, _ModelHandler12);
 
-	function QraModel(metadata, img, modelScript, visScript) {
+	function QraModel(metadata, img, modelScript, visScript, readme) {
 		_classCallCheck(this, QraModel);
 
-		var _this12 = _possibleConstructorReturn(this, (QraModel.__proto__ || Object.getPrototypeOf(QraModel)).call(this, metadata, img, modelScript, visScript));
+		var _this12 = _possibleConstructorReturn(this, (QraModel.__proto__ || Object.getPrototypeOf(QraModel)).call(this, metadata, img, modelScript, visScript, readme));
 
 		_this12._schema = schemas.qraModel;
 		_this12._menu = [{
@@ -13824,7 +13825,7 @@ var APPModalMTDetails = function (_APPModal) {
 			if (modelHandler && modelHandler._menu) {
 
 				$.each(modelHandler._menu, function (i, menuMeta) {
-					if (menuMeta.id == 'readme') return;
+					if (menuMeta.id == 'resources') return;
 					var $navItem = null;
 
 					if (menuMeta.submenus && menuMeta.submenus.length > 0) {
@@ -13853,7 +13854,7 @@ var APPModalMTDetails = function (_APPModal) {
 				// get each menus id
 				$.each(modelHandler._menu, function (i, menuMeta) {
 					// dropdown nav item 
-					if (menuMeta.id == 'readme') return;
+					if (menuMeta.id == 'resources') return;
 					if (menuMeta.submenus && menuMeta.submenus.length > 0) {
 						// iterate over submenus
 						$.each(menuMeta.submenus, function (j, submenuMeta) {
@@ -13955,6 +13956,10 @@ var APPModalMTDetails = function (_APPModal) {
 								else if (panelMeta.type == 'visualizationScript') {
 										$panel = O._createVisualizationScriptPanel(menu, modelHandler);
 									}
+                                // readme
+                                else if( panelMeta.type == 'readme' ) {
+                                    $panel = O._createReadmePanel( menu, modelHandler );
+                                }
 				}
 			}
 
@@ -14193,13 +14198,40 @@ var APPModalMTDetails = function (_APPModal) {
 			return $panel;
 		}
 
-		/**
-   * GET MODEL HANDLER
-   * returns model handler of class Model
-   * @param {array} modelMetadata: metadata for specific id
-   */
 
-	}, {
+
+	},{
+      		key: '_createReadmePanel',
+      		value: function _createReadmePanel(menu, modelHandler) {
+      			var O = this;
+      			_log('MODAL DETAILS / _createReadmePanel');
+
+      			// tab-pane
+      			var $panel = $('<div class="tab-pane h-100" role="tabpanel"></div>').attr('id', menu.id);
+
+      			if (modelHandler && menu.id && modelHandler.readme) {
+      				// get panel meta
+      				_log('ifffff readme: ' + modelHandler.readme);
+      				var panelMeta = modelHandler._panels[menu.id];
+
+      				// title
+      				$panel.append('<div class="panel-heading">' + menu.label + '</div>');
+      				var $script = $('<pre class="precss"></pre>').appendTo($panel).wrap('<div class="panel-plot"></div>');
+
+      				var lines = modelHandler.readme.split("\n");
+      				for (var i = 0; i < lines.length; i++) {
+      					$('<span class="line">' + lines[i] + '</span>').appendTo($script);
+      				}
+      			}
+
+      			return $panel;
+      		}
+      		/**
+           * GET MODEL HANDLER
+           * returns model handler of class Model
+           * @param {array} modelMetadata: metadata for specific id
+           */
+      	},	 {
 		key: '_getModelHandler',
 		value: async function _getModelHandler(modelMetadata) {
 			var O = this;
@@ -14213,34 +14245,34 @@ var APPModalMTDetails = function (_APPModal) {
 				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
 				var modelScript = await _fetchData._content(_endpoints.modelScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
 				var visScript = await _fetchData._content(_endpoints.visScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
-
+                var readme = await _fetchData._content(_endpoints.readMe, O._modelId, O._signal);
 				// get appropiate modelMetadata modelHandler for the model type.
 				if (modelMetadata.modelType === 'genericModel') {
-					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'dataModel') {
-					modelHandler = new DataModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new DataModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'predictiveModel') {
-					modelHandler = new PredictiveModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new PredictiveModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'otherModel') {
-					modelHandler = new OtherModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new OtherModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'toxicologicalModel') {
-					modelHandler = new ToxicologicalModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new ToxicologicalModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'doseResponseModel') {
-					modelHandler = new DoseResponseModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new DoseResponseModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'exposureModel') {
-					modelHandler = new ExposureModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new ExposureModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'processModel') {
-					modelHandler = new ProcessModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new ProcessModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'consumptionModel') {
-					modelHandler = new ConsumptionModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new ConsumptionModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'healthModel') {
-					modelHandler = new HealthModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new HealthModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'riskModel') {
-					modelHandler = new RiskModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new RiskModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else if (modelMetadata.modelType === 'qraModel') {
-					modelHandler = new QraModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new QraModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				} else {
-					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript);
+					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript, readme);
 				}
 			}
 
