@@ -15192,6 +15192,8 @@ form {
     .modal-details .panel-plot .figure img,
     .modal-details .panel-plot .figure svg {
       max-width: 100%; }
+
+
 pre {
   -moz-tab-size: 4;
     -o-tab-size: 4;
@@ -15221,6 +15223,32 @@ pre span:before {
   margin-right: .5em;
   color: #888; }
 
+pre.precssreadme {
+    tab-size: 4;
+    padding: 0;
+    color: rgb(255, 255, 255);
+    background-color: rgb(255, 255, 255);
+    font-size: 16px;
+    line-height: 16px;
+}
+pre.precssreadme {
+    background: #ffffff;
+    color: #303030;
+    padding: 10px 16px;
+  }
+pre.precssreadme span {
+    display: block;
+    line-height: 1.5rem;
+  }
+pre.precssreadme span:before {
+
+	content: none !important;
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    padding: 0 .5em;
+    margin-right: .5em;
+    color: #888
+}
 @media (min-width: 576px) {
   .modal-sim .modal-content {
     height: 90vh;
@@ -15691,3 +15719,4 @@ pre span:before {
 body{
     margin-bottom:50px;
 }
+
