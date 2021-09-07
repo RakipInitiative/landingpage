@@ -21,6 +21,7 @@ import java.net.URI
 import de.bund.bfr.fskml.FSKML
 import de.bund.bfr.fskml.FskMetaDataObject
 import de.unirostock.sems.cbarchive.CombineArchiveException
+import downloadRoutes
 import io.ktor.request.*
 import org.jdom.Text
 import org.jlibsedml.ChangeAttribute
@@ -195,6 +196,9 @@ fun Application.module(testing: Boolean = false) {
     fun getViewFskWeb(index: Int) = fskweb_processedMetadata?.let { it.views[index] }
     fun getViewRakipWeb(index: Int) = rakipweb_processedMetadata?.let { it.views[index] }
 
+    downloadRoutes(modelFiles)
+
+
     routing {
         get("/") {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
@@ -299,6 +303,8 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+
 
         // FSK-Web download
         get("/FSK-Web/download/{i}") {
@@ -900,7 +906,11 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["id"]?.let { imageId ->
                 try {
                     val appConfiguration = loadConfiguration()
-                    imgFiles.add(File(appConfiguration.getProperty("plot_folder") + "/" + imageId + ".svg"))
+                    val newImageFile = File(appConfiguration.getProperty("plot_folder") + "/" + imageId + ".svg");
+                    if(!imgFiles.contains(newImageFile)){
+                        imgFiles.add(newImageFile)
+                    }
+
                     call.respond(HttpStatusCode.Accepted)
 
                 } catch (err: IndexOutOfBoundsException) {
@@ -915,31 +925,12 @@ fun Application.module(testing: Boolean = false) {
                 try {
                     val appConfiguration = loadConfiguration()
                     val folder = appConfiguration.getProperty("fskweb_model_folder")
-                    fskweb_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
+                    val newModelFile = File(folder + "/" + modelId + ".fskx")
+                    if(!fskweb_modelFiles.contains(newModelFile)){
+                        fskweb_modelFiles.add(newModelFile)
 
-                    // Metadata
-                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
-                    fskweb_rawMetadata.addAll(new_model)
-                    fskweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) }.toMutableList())
-
-
-                    // Times
-                    val timesFile = appConfiguration.getProperty("times_csv")
-
-                    val temporaryUploadTimes = mutableMapOf<String, String>()
-                    val temporaryExecutionTimes = mutableMapOf<String, String>()
-                    File(timesFile).readLines().forEach {
-                        val tokens = it.split(",")
-                        val mId = tokens[0]
-                        temporaryUploadTimes[mId] = tokens[2]
-                        temporaryExecutionTimes[mId] = tokens[1]
+                        call.respondRedirect("/landingpage/FSK-Web/updateRepository")
                     }
-                    val executionTimes = temporaryExecutionTimes.toMap()
-                    val uploadTimes = temporaryUploadTimes.toMap()
-
-                    addProcessMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl, fskweb_processedMetadata)
-                    //fskweb_parsedMetadata.add(new_model.map { MAPPER.readTree(it) }.toMutableList())
-
                     call.respond(HttpStatusCode.Accepted)
 
                 } catch (err: IndexOutOfBoundsException) {
@@ -954,28 +945,12 @@ fun Application.module(testing: Boolean = false) {
                 try {
                     val appConfiguration = loadConfiguration()
                     val folder = appConfiguration.getProperty("rakipweb_model_folder")
-                    rakipweb_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
-
-                    // Metadata
-                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
-                    rakipweb_rawMetadata.addAll(new_model)
-                    rakipweb_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) })
-
-                    // Times
-                    val timesFile = appConfiguration.getProperty("times_csv")
-
-                    val temporaryUploadTimes = mutableMapOf<String, String>()
-                    val temporaryExecutionTimes = mutableMapOf<String, String>()
-                    File(timesFile).readLines().forEach {
-                        val tokens = it.split(",")
-                        val mId = tokens[0]
-                        temporaryUploadTimes[mId] = tokens[2]
-                        temporaryExecutionTimes[mId] = tokens[1]
+                    val newModelFile = File(folder + "/" + modelId + ".fskx")
+                    if(!rakipweb_modelFiles.contains(newModelFile)){
+                        rakipweb_modelFiles.add(newModelFile)
+                        call.respondRedirect("/landingpage/RAKIP-Web/updateRepository")
                     }
-                    val executionTimes = temporaryExecutionTimes.toMap()
-                    val uploadTimes = temporaryUploadTimes.toMap()
 
-                    addProcessMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl, rakipweb_processedMetadata)
                     call.respond(HttpStatusCode.Accepted)
 
                 } catch (err: IndexOutOfBoundsException) {
@@ -984,7 +959,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
         // endpoint to add model ID to the service (FSK-Web)
-        post("/FSK-Web/updateRepository") {
+        get("/FSK-Web/updateRepository") {
             try {
                 val appConfiguration = loadConfiguration()
                 val folder = appConfiguration.getProperty("fskweb_model_folder")
@@ -1026,7 +1001,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
         // endpoint to add model ID to the service (FSK-Web)
-        post("/RAKIP-Web/updateRepository") {
+        get("/RAKIP-Web/updateRepository") {
             try {
                 val appConfiguration = loadConfiguration()
                 val folder = appConfiguration.getProperty("rakipweb_model_folder")

@@ -184,6 +184,8 @@ var _appVars = {
 					td 			: null
 				},
 				sortable 	: true, // sortable
+				sorter 		: '_date', // _sorter subroutine
+
 				switchable 	: true, // data-switchable
 				formatter 	: '_uploadDate' // _formatter subroutine
 			}
