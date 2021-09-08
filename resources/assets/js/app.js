@@ -13246,7 +13246,8 @@ var _sorter = {
 			try {
 				for (var _iterator = val.values()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 					var _item = _step.value;
-
+                    // check if item is a date and format that
+                    _item = _formatter._metadataDate(_item);
 					var $li = $('<li>' + _item + '</li>').appendTo($ul);
 				}
 			} catch (err) {
@@ -13286,8 +13287,27 @@ var _sorter = {
 		var rx = new RegExp('(?![^<]+>)' + search, 'gi');
 		// return val.toString().replace( new RegExp('(<.*?>)(' + search + '?.)(</.*?>)', 'g'), '<mark>$2</mark>' );
 		return val.replace(rx, '<mark>$&</mark>');
-	}
+	},
+	_metadataDate: function _metadataDate(data) {
+        if(data && data.constructor == Array) {
+            var dTemp = new Date(data);
+            if (Object.prototype.toString.call(dTemp) === "[object Date]") {
+            // it is a date
+                if (!isNaN(dTemp.getTime())) {  // d.valueOf() could also work
+                    // date is valid
+                    data = dTemp.toLocaleDateString();
+                }
+            }
 
+            }
+    	return data;
+    },
+	_metadataDateArray: function _metadataDateArray(data) {
+	    if(data){
+	        return data.map(_formatter._metadataDate)
+	    }
+	    return data;
+    },
 	/**
    * fetch data from src by id and type
    */
@@ -14056,7 +14076,15 @@ var APPModalMTDetails = function (_APPModal) {
 						rowData.cells.push(prop.label);
 						// cell 2 val
 						var data = panelMeta.metadata[prop.id];
-						data = _checkUndefinedContent(data);
+
+						if(prop.type == 'date'){
+                            data = _formatter['_metadataDate'].call(0,data);
+                        }
+						if(prop.type == 'date-array'){
+                            data = _formatter['_metadataDateArray'].call(0,data);
+                            rowData.type = prop.type;
+                        }
+                        data = _checkUndefinedContent(data);
 						rowData.cells.push(data);
 
 						tableSettings.tableData.push(rowData);
@@ -14122,8 +14150,18 @@ var APPModalMTDetails = function (_APPModal) {
 						};
 						// cells
 						$.each(panelMeta.schema, function (j, prop) {
+
+
 							var data = item[prop.id];
-							data = _checkUndefinedContent(data);
+
+                            if(prop.type == 'date'){
+                                data = _formatter['_metadataDate'].call(0,data);
+                            }
+                            if(prop.type == 'date-array'){
+                                data = _formatter['_metadataDateArray'].call(0,data);
+                                rowData.type = prop.type;
+                            }
+						    data = _checkUndefinedContent(data);
 							// cell each prop
 							rowData.cells.push(data);
 						});
@@ -15503,7 +15541,6 @@ var APPTable = function () {
 				// populate table
 				O._populateTable(O._tableData);
 			}
-
 			// tooltips
 			_appUI._initTooltips(O._$container);
 		}
@@ -15657,10 +15694,11 @@ var APPTable = function () {
 				$.each(O.opts.cols, function (j, col) {
 
 					var data = rowData.cells[j];
+                    // format to Date if data is array
 
 					var $td = $('<td></td>').appendTo($tr);
 					col.classes && col.classes.td ? $td.addClass(col.classes.td) : null; // classes
-					col.collapsable ? $td.attr('data-td-collapse', col.collapsable) : null; // data collapsable
+    				col.collapsable ? $td.attr('data-td-collapse', col.collapsable) : null; // data collapsable
 					col.label ? $td.attr('data-label', col.label) : null; // add data-label for toggle view cards
 
 					// td attributes
@@ -15671,6 +15709,9 @@ var APPTable = function () {
 					}
 
 					// check for function that format the data
+					if(rowData.type && rowData.type == 'date-array'){
+					    col.formatter = '_list';
+					}
 					if (col.formatter) {
 						if ($.isFunction(col.formatter)) {
 							data = col.formatter.call(O, data);
