@@ -3,6 +3,7 @@ package de.bund.bfr.landingpage
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import databaseRoutes
 import de.unirostock.sems.cbarchive.ArchiveEntry
 import de.unirostock.sems.cbarchive.CombineArchive
 import freemarker.cache.ClassTemplateLoader
@@ -23,6 +24,7 @@ import de.bund.bfr.fskml.FskMetaDataObject
 import de.unirostock.sems.cbarchive.CombineArchiveException
 import downloadRoutes
 import io.ktor.request.*
+import io.ktor.util.pipeline.*
 import org.jdom.Text
 import org.jlibsedml.ChangeAttribute
 import org.jlibsedml.Libsedml
@@ -32,6 +34,12 @@ import org.renjin.script.RenjinScriptEngine
 import org.renjin.script.RenjinScriptEngineFactory
 import java.util.*
 import kotlin.collections.LinkedHashMap
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.security.SecureRandom
 
 val MAPPER = ObjectMapper()
 
@@ -77,6 +85,8 @@ fun Application.module(testing: Boolean = false) {
         allowCredentials = true
         anyHost()
     }
+
+
 
     val modelFiles: List<File>
     val filesFolder: String?
@@ -197,9 +207,10 @@ fun Application.module(testing: Boolean = false) {
     fun getViewRakipWeb(index: Int) = rakipweb_processedMetadata?.let { it.views[index] }
 
     downloadRoutes(modelFiles)
-
+    databaseRoutes()
 
     routing {
+
         get("/") {
             call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
