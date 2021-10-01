@@ -1379,15 +1379,16 @@ private fun loadConfiguration(): Properties {
     return properties
 }
 
-private fun readModelScript(modelFile: File, uri:URI): String {
-
-    return CombineArchive(modelFile).use {
+fun readModelScript(modelFile: File, uri:URI): String {
+var x = 22;
+    var result = CombineArchive(modelFile).use {
         it.getEntriesWithFormat(uri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
             val firstDescription = entry.descriptions[0]
             val metadataObject = FskMetaDataObject(firstDescription)
             metadataObject.resourceType == FskMetaDataObject.ResourceType.modelScript
         }.loadTextEntry()
     }
+    return result;
 }
 
 private fun readVisualizationScript(modelFile: File,uri:URI): String {

@@ -1,14 +1,16 @@
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import de.bund.bfr.fskml.FSKML
+import de.bund.bfr.landingpage.readModelScript
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 import java.security.SecureRandom
 import java.util.ArrayList
 
@@ -24,8 +26,6 @@ fun Application.databaseRoutes() {
 
     //transaction { SchemaUtils.create(RESULTS) }
     Database.connect("jdbc:h2:file:/home/thschuel/databases/repository_db2.h2;AUTO_SERVER=TRUE", driver = "org.h2.Driver",  password = "curation")
-
-    transaction { SchemaUtils.create(RESULTS) }
     transaction { SchemaUtils.create(MODELS) }
 
 
@@ -38,60 +38,51 @@ fun Application.databaseRoutes() {
 }
 
 fun Route.handleGetRequests(){
-    val secureRandom = SecureRandom()
-    val booleanRandomiser = { secureRandom.nextBoolean() }
-    get("/flip") {
-        handleFlipRequest(booleanRandomiser)
-    }
-
-    get("/outcomes") {
-        handleGetOutcomesRequest()
-    }
-    get("/modelnames") {
-        handleGetModelNamesRequest()
-    }
-    get("/metadataDB") {
+    get("/DB/metadata") {
         handleGetMetadataRequest()
     }
-}
-
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetOutcomesRequest() {
-    var allOutcomes: List<Coin> = ArrayList()
-    transaction {
-        allOutcomes = RESULTS.selectAll().map { resultRow -> Coin(Face.valueOf(resultRow[RESULTS.face].toString())) }
-    }.apply {
-        call.respond(allOutcomes)
+    get("/DB/executionTime") {
+        handleGetDateTimeRequest(MODELS.mExecutionTime)
     }
-}
-
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleFlipRequest(booleanRandomiser: () -> Boolean) {
-    val result = booleanRandomiser.invoke()
-    val faceValue: Face = if (result) Face.HEADS else Face.TAILS
-    run {
-        transaction {
-            RESULTS.insert { it[face] = faceValue.name }
+    get("/DB/uploadDate") {
+        handleGetDateTimeRequest(MODELS.mUploadDate)
+    }
+    get("/DB/metadata/{id}") {
+        call.parameters["id"]?.let { id ->
+            handleGetPropertyByIdRequest(id, MODELS.mMetadata)
         }
-    }.apply {
-        call.respond(Coin(faceValue))
     }
-}
-
-data class Coin(var face: Face)
-
-enum class Face { HEADS, TAILS }
-
-object RESULTS : org.jetbrains.exposed.sql.Table() {
-    val face = varchar("face", 5)
-}
-
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetModelNamesRequest() {
-    var allOutcomes: List<String> = ArrayList()
-    transaction {
-        allOutcomes = MODELS.slice(MODELS.mName).selectAll().map { resultRow -> resultRow[MODELS.mName].toString() }
-    }.apply {
-        call.respond(allOutcomes)
+    get("/DB/doi/{id}") {
+        call.parameters["id"]?.let { id ->
+            handleGetPropertyByIdRequest(id, MODELS.mDoi)
+        }
     }
+    get("/DB/download/{id}") {
+        call.parameters["id"]?.toString()?.let {mId ->
+            try {
+
+                handleDownloadRequest(mId)
+            } catch (err: Exception) {
+
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
+    get("/DB/modelscript/{id}") {
+        call.parameters["id"]?.toString()?.let {mId ->
+            try {
+
+                handleScriptRequest(mId)
+
+            } catch (err: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
+
 }
+
+
 
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequest() {
@@ -100,6 +91,60 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequ
         allOutcomes = MODELS.slice(MODELS.mMetadata).selectAll().map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
     }.apply {
         call.respond(allOutcomes)
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequest(property: Column<String?>) {
+    var result = mutableMapOf<String, String>()
+    transaction {
+
+        MODELS.slice(MODELS.mId, property).selectAll().map {it[MODELS.mId] +"," + it[property]}.forEach {
+            val tokens = it.split(",")
+            val mId = tokens[0]
+            result[mId] = if (tokens[1] != "null") tokens[1] else ""
+        }
+    }.apply {
+        call.respond(result)
+    }
+}
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyByIdRequest(mId: String, property: Column<String?>) {
+    var allOutcomes: String = String()
+    transaction {
+        allOutcomes = MODELS.slice(property).select {MODELS.mId eq mId}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
+    }.apply {
+        if(allOutcomes.equals("null")) {
+            call.respond("")
+        } else {
+            call.respond(allOutcomes)
+        }
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest(mId : String) {
+    var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    transaction {
+        filePath += MODELS.slice(MODELS.mFilePath).select {MODELS.mId eq mId}.map { resultRow -> resultRow[MODELS.mFilePath]}.first().toString()
+    }.apply {
+        call.response.header("Content-Disposition", "attachment; filename=${mId + ".fskx"}")
+        call.respondFile(File(filePath))
+    }
+}
+
+// Script & Readme Requests
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(mId : String) {
+    var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    var script = String()
+    transaction {
+        filePath += MODELS.slice(MODELS.mFilePath).select {MODELS.mId eq mId}.map { resultRow -> resultRow[MODELS.mFilePath]}.first().toString()
+        val metadata = MODELS.slice(MODELS.mMetadata).select {MODELS.mId eq mId}.map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }.first()
+
+        var language = metadata["generalInformation"]["languageWrittenIn"].asText();
+        var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+        script = readModelScript(File(filePath), uri)
+
+    }.apply {
+
+        call.respondText(script)
     }
 }
 object MODELS : org.jetbrains.exposed.sql.Table("Models") {
