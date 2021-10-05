@@ -129,12 +129,19 @@ fun Route.handleGetRequests(){
 }
 
 
+private fun getParameters(call: ApplicationCall):Pair<Repository,Status>{
 
+    val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString())?.let{it} ?:Repository.FSK_WEB
+    val status = Status.fromSymbol(call.request.queryParameters["status"].toString())?.let{it} ?:Status.CURATED
+    return Pair(rep,status)
+}
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequest() {
     var allOutcomes: List<JsonNode> = ArrayList()
+
+    val parameters = getParameters(call);
     transaction {
-        allOutcomes = MODELS.slice(MODELS.mMetadata).selectAll().map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
+        allOutcomes = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
     }.apply {
         call.respond(allOutcomes)
     }
@@ -142,9 +149,10 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequ
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequest(property: Column<String?>) {
     var result = mutableMapOf<String, String>()
+    val parameters = getParameters(call);
     transaction {
 
-        MODELS.slice(MODELS.mId, property).selectAll().map {it[MODELS.mId] +"," + it[property]}.forEach {
+        MODELS.slice(MODELS.mId, property).select{whereFilter("",parameters.first,parameters.second)}.map {it[MODELS.mId] +"," + it[property]}.forEach {
             val tokens = it.split(",")
             val mId = tokens[0]
             result[mId] = if (tokens[1] != "null") tokens[1] else ""
@@ -155,8 +163,9 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequ
 }
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyByIdRequest(mId: String, property: Column<String?>) {
     var allOutcomes: String = String()
+    val parameters = getParameters(call);
     transaction {
-        allOutcomes = MODELS.slice(property).select {whereFilter(mId)}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
+        allOutcomes = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
     }.apply {
         if(allOutcomes.equals("null")) {
             call.respond("")
@@ -168,8 +177,12 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyById
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest(mId : String) {
     var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    val parameters = getParameters(call);
     transaction {
-        filePath += MODELS.slice(MODELS.mFilePath).select {whereFilter(mId)}.map { resultRow -> resultRow[MODELS.mFilePath]}.first().toString()
+        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.first()
+        result?.let {
+            filePath += result.toString()
+        }
     }.apply {
         call.response.header("Content-Disposition", "attachment; filename=${mId + ".fskx"}")
         call.respondFile(File(filePath))
@@ -179,11 +192,18 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest
 // image
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mId : String) {
     var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    val parameters = getParameters(call);
+    var svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
+            "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
     transaction {
-        filePath += MODELS.slice(MODELS.mPlotPath).select {whereFilter(mId)}.map { resultRow -> resultRow[MODELS.mPlotPath]}.first().toString()
+        val result = MODELS.slice(MODELS.mPlotPath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mPlotPath]}.first()
+        result?.let {
+            filePath += result.toString()
+            svg = File(filePath).readText()
+        }
     }.apply {
         call.response.header("Content-Disposition", "inline")
-        call.respondText(File(filePath).readText())
+        call.respondText(svg)
     }
 }
 
@@ -192,20 +212,26 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(m
                                                                                scriptResource: FskMetaDataObject.ResourceType) {
     var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
     var script = String()
+    val parameters = getParameters(call);
     transaction {
-        filePath += MODELS.slice(MODELS.mFilePath).select {whereFilter(mId)}.map { resultRow -> resultRow[MODELS.mFilePath]}.first().toString()
-        val metadata = MODELS.slice(MODELS.mMetadata).select {whereFilter(mId)}.map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }.first()
+        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
+        result?.let{
+            filePath += result
+            MODELS.slice(MODELS.mMetadata).select{whereFilter(mId,parameters.first,parameters.second)}
+                    .map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }.firstOrNull()?.let{metadata ->
+                        var language = metadata?.get("generalInformation")?.get("languageWrittenIn")?.asText()?.let { it } ?: "r";
 
-        var language = metadata["generalInformation"]["languageWrittenIn"].asText();
+                        // URI model & visualization script
+                        var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
 
-        // URI model & visualization script
-        var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                        // URI readme
+                        if(scriptResource.equals(FskMetaDataObject.ResourceType.readme)){
+                            uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                        }
+                        script = readScript(File(filePath), uri, scriptResource)
 
-        // URI readme
-        if(scriptResource.equals(FskMetaDataObject.ResourceType.readme)){
-            uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                    }
         }
-        script = readScript(File(filePath), uri, scriptResource)
 
     }.apply {
 
@@ -213,6 +239,22 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(m
     }
 }
 
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(term: String) {
+    var metadataList: List<String> = ArrayList()
+    val matchingModelIndexes = mutableListOf<Int>()
+    val parameters = getParameters(call);
+    transaction {
+        metadataList = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second) }.map { resultRow -> resultRow[MODELS.mMetadata].toString()}
+        metadataList.forEachIndexed { index, modelMetadata ->
+            if (modelMetadata.contains(term, ignoreCase = true)) {
+                matchingModelIndexes.add(index)
+            }
+        }
+    }.apply {
+        call.respond(matchingModelIndexes)
+    }
+}
 private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataObject.ResourceType): String {
     var x = 22;
     var result = CombineArchive(modelFile).use {
@@ -223,20 +265,6 @@ private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataOb
         }.loadTextEntry()
     }
     return result;
-}
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(term: String) {
-    var metadataList: List<String> = ArrayList()
-    val matchingModelIndexes = mutableListOf<Int>()
-    transaction {
-        metadataList = MODELS.slice(MODELS.mMetadata).selectAll().map { resultRow -> resultRow[MODELS.mMetadata].toString()}
-        metadataList.forEachIndexed { index, modelMetadata ->
-            if (modelMetadata.contains(term, ignoreCase = true)) {
-                matchingModelIndexes.add(index)
-            }
-        }
-    }.apply {
-        call.respond(matchingModelIndexes)
-    }
 }
 object MODELS : org.jetbrains.exposed.sql.Table("Models") {
     val mId = varchar("UUID", 255).uniqueIndex()
@@ -257,17 +285,28 @@ enum class Repository (val rep: String){
     RAKIP_WEB ("RAKIP-Web"),
     FSK_WEB("FSK-Web"),
     RENJIN("Renjin"),
-    TRASHBIN("Trash-Bin")
+    TRASHBIN("Trash-Bin");
+    companion object {
+        private val mapping = values().associateBy(Repository::rep)
+        fun fromSymbol(rep: String) = mapping[rep]
+    }
 }
 
-enum class Status(val status: String){
-    UNCURATED("Uncurated"),
-    CURATED("Curated")
+enum class Status(val key: String){
+    UNCURATED("uncurated"),
+    CURATED("Curated");
+    companion object {
+        private val mapping = values().associateBy(Status::key)
+        fun fromSymbol(key: String) = mapping[key]
+    }
 }
 // FILTER BY REPOSITORY AND STATUS
-private fun whereFilter(mId: String,
+private fun whereFilter(mId: String = "",
                         repository: Repository=Repository.FSK_WEB,
-                        status: Status=Status.UNCURATED): Op<Boolean>{
+                        status: Status=Status.CURATED): Op<Boolean>{
 
-    return (MODELS.mId eq mId) and (MODELS.mRepository eq repository.rep);
+    if(mId.equals("")){
+        return (MODELS.mRepository eq repository.rep).and(MODELS.mStatus eq status.key);
+    }
+    return (MODELS.mId eq mId).and(MODELS.mRepository eq repository.rep).and(MODELS.mStatus eq status.key);
 }
