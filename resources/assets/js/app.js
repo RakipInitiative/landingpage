@@ -13314,10 +13314,10 @@ var _sorter = {
 
 };var _fetchData = {
 	_json: async function _json(src, id, signal) {
-		_log('UTILS / _fetchData._json: ' + src + ', ' + id);
+		_log('UTILS / _fetchData._json: ' + src + ', ' + id + ',' + _token);
 		var data = null;
 		// append id if not type "set"
-		src = !_isNull(id) ? src + id : src;
+		src = !_isNull(id) ? src + id + _token : src + _token;
 
 		var fetchOpts = {};
 		!_isNull(signal) ? fetchOpts.signal = signal : null;
@@ -13335,10 +13335,10 @@ var _sorter = {
 		return data;
 	},
 	_blob: async function _blob(src, id, signal) {
-		_log('UTILS / _fetchData._blob: ' + src + ', ' + id);
+		_log('UTILS / _fetchData._blob: ' + src + ', ' + id + ',' + _token);
 		var data = null;
 		// append id if not type "set"
-		src = !_isNull(id) ? src + id : src;
+		src = !_isNull(id) ? src + id + _token: src + _token;
 
 		var fetchOpts = {};
 		!_isNull(signal) ? fetchOpts.signal = signal : null;
@@ -13358,10 +13358,10 @@ var _sorter = {
 		return data;
 	},
 	_content: async function _content(src, id, signal) {
-		_log('UTILS / _fetchData._content: ' + src + ', ' + id);
+		_log('UTILS / _fetchData._content: ' + src + ', ' + id + ',' + _token);
 		var data = null;
 		// append id if not type "set"
-		src = !_isNull(id) ? src + id : src;
+		src = !_isNull(id) ? src + id + _token : src + _token;
 
 		var fetchOpts = {};
 		!_isNull(signal) ? fetchOpts.signal = signal : null;
@@ -13412,10 +13412,10 @@ var _sorter = {
 	},
 	// function to send a FSKSimulation to execute endpoint with POST
 	_contentPost: async function _contentPost(src, id, payload, signal) {
-    		_log('UTILS / _fetchData.content: ' + src + ', ' + id);
+    		_log('UTILS / _fetchData.content: ' + src + ', ' + id + ',' + _token);
     		var data = null;
     		// append id if not type "set"
-    		src = !_isNull(id) ? src + id : src;
+    		src = !_isNull(id) ? src + id + _token: src + _token;
             var fetchOpts = {};
 		    !_isNull(signal) ? fetchOpts.signal = signal : null;
 
@@ -14319,9 +14319,9 @@ var APPModalMTDetails = function (_APPModal) {
 
 				// get plot image
 				var imgUrl = await _fetchData._content(_endpoints.image, modelMetadata.generalInformation.identifier, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
-				var modelScript = await _fetchData._content(_endpoints.modelScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
-				var visScript = await _fetchData._content(_endpoints.visScript, O._modelId, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
-                var readme = await _fetchData._content(_endpoints.readMe, O._modelId, O._signal);
+				var modelScript = await _fetchData._content(_endpoints.modelScript,modelMetadata.generalInformation.identifier, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
+				var visScript = await _fetchData._content(_endpoints.visScript,modelMetadata.generalInformation.identifier, O._signal); // O._app._getImage( modelMetadata.generalInformation.identifier );
+                var readme = await _fetchData._content(_endpoints.readMe, modelMetadata.generalInformation.identifier, O._signal);
 				// get appropiate modelMetadata modelHandler for the model type.
 				if (modelMetadata.modelType === 'genericModel') {
 					modelHandler = new GenericModel(modelMetadata, imgUrl, modelScript, visScript, readme);
@@ -14767,7 +14767,8 @@ var APPModalMTSimulations = function (_APPModal2) {
 			O._simSelectedIndex = 0; // reset simulation
 
 			// get simulations
-			O._simulations = await await _fetchData._json(_endpoints.simulations, O._modelId); //O._app._getSimulations( O._modelId );
+			let modelIdentifier = O._modelMetadata.generalInformation.identifier
+			O._simulations = await await _fetchData._json(_endpoints.simulations, modelIdentifier); //O._app._getSimulations( O._modelId );
 
 			// create params		
 			if (O._simulations && O._simulations.length > 0) {

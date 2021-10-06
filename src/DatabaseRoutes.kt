@@ -2,10 +2,14 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.bund.bfr.fskml.FSKML
 import de.bund.bfr.fskml.FskMetaDataObject
+import de.bund.bfr.landingpage.FskSimulation
 import de.bund.bfr.landingpage.loadTextEntry
+import de.bund.bfr.landingpage.readModel
+import de.bund.bfr.landingpage.run
 import de.unirostock.sems.cbarchive.CombineArchive
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
@@ -19,15 +23,15 @@ import java.util.ArrayList
 
 
 val MAPPER = ObjectMapper()
-
-
+val basePath = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/"
+val repositoryName ="RepositoryDB"
 fun Application.databaseRoutes() {
     //************************
 
     //Database.connect("jdbc:h2:file:/home/thschuel/databases/H2_first;AUTO_SERVER=TRUE", driver = "org.h2.Driver")
 
     //transaction { SchemaUtils.create(RESULTS) }
-    Database.connect("jdbc:h2:file:/home/thschuel/databases/repository_db2.h2;AUTO_SERVER=TRUE", driver = "org.h2.Driver",  password = "curation")
+    Database.connect("jdbc:h2:${basePath}${repositoryName}/repository_db.h2;AUTO_SERVER=TRUE", driver = "org.h2.Driver",  password = "curation")
     transaction { SchemaUtils.create(MODELS) }
 
 
@@ -40,6 +44,7 @@ fun Application.databaseRoutes() {
 }
 
 fun Route.handleGetRequests(){
+
     get("/DB/test/{id}") {
         try {
             call.parameters["id"]?.let { id ->
@@ -93,7 +98,8 @@ fun Route.handleGetRequests(){
     get("/DB/modelscript/{id}") {
         call.parameters["id"]?.toString()?.let {mId ->
             try {
-                handleScriptRequest(mId, FskMetaDataObject.ResourceType.modelScript)
+                handleGetPropertyByIdRequest(mId,MODELS.mModelScript)
+                //handleScriptRequest(mId, FskMetaDataObject.ResourceType.modelScript)
             } catch (err: Exception) {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -102,7 +108,7 @@ fun Route.handleGetRequests(){
     get("/DB/visualizationscript/{id}") {
         call.parameters["id"]?.toString()?.let {mId ->
             try {
-                handleScriptRequest(mId, FskMetaDataObject.ResourceType.visualizationScript)
+                handleGetPropertyByIdRequest(mId,MODELS.mVisualizationScript)
             } catch (err: Exception) {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -111,7 +117,16 @@ fun Route.handleGetRequests(){
     get("/DB/readme/{id}") {
         call.parameters["id"]?.toString()?.let {mId ->
             try {
-                handleScriptRequest(mId, FskMetaDataObject.ResourceType.readme)
+                handleGetPropertyByIdRequest(mId,MODELS.mReadme)
+            } catch (err: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
+    get("/DB/simulations/{id}") {
+        call.parameters["id"]?.toString()?.let {mId ->
+            try {
+                handleGetPropertyByIdRequest(mId,MODELS.mSimulations)
             } catch (err: Exception) {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -126,15 +141,21 @@ fun Route.handleGetRequests(){
             }
         }
     }
+    // endpoint to run models with a posted simulation in the body(JSON)
+    post("/DB/execute/{i}") {
+        call.parameters["id"]?.toString()?.let {mId ->
+            try {
+                handleExecutionRequest(mId)
+                //handleScriptRequest(mId, FskMetaDataObject.ResourceType.modelScript)
+            } catch (err: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
 }
 
 
-private fun getParameters(call: ApplicationCall):Pair<Repository,Status>{
 
-    val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString())?.let{it} ?:Repository.FSK_WEB
-    val status = Status.fromSymbol(call.request.queryParameters["status"].toString())?.let{it} ?:Status.CURATED
-    return Pair(rep,status)
-}
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequest() {
     var allOutcomes: List<JsonNode> = ArrayList()
@@ -162,26 +183,26 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequ
     }
 }
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyByIdRequest(mId: String, property: Column<String?>) {
-    var allOutcomes: String = String()
+    var result: String = String()
     val parameters = getParameters(call);
     transaction {
-        allOutcomes = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
+        result = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
     }.apply {
-        if(allOutcomes.equals("null")) {
+        if(result.equals("null")) {
             call.respond("")
         } else {
-            call.respond(allOutcomes)
+            call.respond(result)
         }
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest(mId : String) {
-    var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    var filePath: String = basePath;
     val parameters = getParameters(call);
     transaction {
         val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.first()
         result?.let {
-            filePath += result.toString()
+            filePath +=  result.toString()
         }
     }.apply {
         call.response.header("Content-Disposition", "attachment; filename=${mId + ".fskx"}")
@@ -191,7 +212,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest
 
 // image
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mId : String) {
-    var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    var filePath: String = basePath;
     val parameters = getParameters(call);
     var svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
             "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
@@ -207,10 +228,10 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mI
     }
 }
 
-// Script & Readme Requests
+// Deprecated since scripts are stored in DB
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(mId : String,
                                                                                scriptResource: FskMetaDataObject.ResourceType) {
-    var filePath: String = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/";
+    var filePath: String = basePath;
     var script = String()
     val parameters = getParameters(call);
     transaction {
@@ -238,7 +259,29 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(m
         call.respondText(script)
     }
 }
+// Execute model with Simulation (POST); RENJIN ONLY!
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleExecutionRequest(mId : String) {
+    var filePath: String = basePath;
+    var script = String()
+    val parameters = getParameters(call);
+    if(parameters.first == Repository.RENJIN){
+        val sim = call.receive<FskSimulation>()
+        transaction {
+            val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
+            result?.let{
+                filePath += result
 
+
+
+            }
+
+        }.apply {
+            val model = readModel(File(filePath))
+            call.respondText(model.run(sim))
+        }
+    }
+
+}
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(term: String) {
     var metadataList: List<String> = ArrayList()
@@ -266,6 +309,14 @@ private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataOb
     }
     return result;
 }
+
+private fun getParameters(call: ApplicationCall):Pair<Repository,Status>{
+
+    val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString())?.let{it} ?:Repository.FSK_WEB
+    val status = Status.fromSymbol(call.request.queryParameters["status"].toString())?.let{it} ?:Status.CURATED
+    return Pair(rep,status)
+}
+
 object MODELS : org.jetbrains.exposed.sql.Table("Models") {
     val mId = varchar("UUID", 255).uniqueIndex()
     val mName = varchar("ModelName", 255).nullable()
@@ -276,6 +327,10 @@ object MODELS : org.jetbrains.exposed.sql.Table("Models") {
     val mFilePath = varchar("FilePath", 255).nullable()
     val mPlotPath = varchar("PlotPath", 255).nullable()
     val mMetadata = varchar("Metadata", 200000).nullable()
+    val mVisualizationScript = varchar("VisualizationScript", 200000).nullable()
+    val mModelScript = varchar("ModelScript", 200000).nullable()
+    val mReadme = varchar("Readme", 200000).nullable()
+    val mSimulations = varchar("Simulations", 200000).nullable()
     val mExecutionTime = varchar("ExecutionTime", 255).nullable()
     val mUploadDate = varchar("UploadDate", 255).nullable()
     val mUploadedBy = varchar("UploadedBy", 255).nullable()
@@ -293,7 +348,7 @@ enum class Repository (val rep: String){
 }
 
 enum class Status(val key: String){
-    UNCURATED("uncurated"),
+    UNCURATED("Uncurated"),
     CURATED("Curated");
     companion object {
         private val mapping = values().associateBy(Status::key)

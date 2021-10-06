@@ -1,5 +1,6 @@
 
-var _endpoint = _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
+var _endpoint = 'http://localhost:8080/landingpage/DB/' || _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
+var _token = '?repository=RAKIP-Web&status=Uncurated'
 var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
 	image			: _endpoint + 'image/',
@@ -69,7 +70,8 @@ var _appVars = {
 				title 			: 'Download',
 				on 				: {
 					click 			: ( O, $action, rowIndex, rowData ) => {
-						window.open( _endpoints.download + rowIndex, '_blank' );
+					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
+						window.open( _endpoints.download + identifier + _token, '_blank' );
 					}
 				}
 			},
