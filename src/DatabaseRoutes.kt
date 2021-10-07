@@ -2,10 +2,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.bund.bfr.fskml.FSKML
 import de.bund.bfr.fskml.FskMetaDataObject
-import de.bund.bfr.landingpage.FskSimulation
-import de.bund.bfr.landingpage.loadTextEntry
-import de.bund.bfr.landingpage.readModel
-import de.bund.bfr.landingpage.run
+import de.bund.bfr.landingpage.*
 import de.unirostock.sems.cbarchive.CombineArchive
 import io.ktor.application.*
 import io.ktor.http.*
@@ -15,6 +12,7 @@ import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.net.URI
@@ -23,8 +21,10 @@ import java.util.ArrayList
 
 
 val MAPPER = ObjectMapper()
-val basePath = "/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/"
-val repositoryName ="RepositoryDB"
+val appConfiguration = loadConfiguration()
+
+val basePath = appConfiguration.getProperty("base_path"); //"/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/"
+val repositoryName =appConfiguration.getProperty("repository_name"); //"RepositoryDB"
 fun Application.databaseRoutes() {
     //************************
 
@@ -288,7 +288,11 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(t
     val matchingModelIndexes = mutableListOf<Int>()
     val parameters = getParameters(call);
     transaction {
-        metadataList = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second) }.map { resultRow -> resultRow[MODELS.mMetadata].toString()}
+        metadataList = MODELS.slice(MODELS.mMetadata, MODELS.mRepository, MODELS.mStatus)
+                .select{whereFilter("",parameters.first,parameters.second) }
+                .map { resultRow -> resultRow[MODELS.mMetadata].toString() +
+                        "repo:" + resultRow[MODELS.mRepository].toString() + "_" +
+                        "status:" + resultRow[MODELS.mStatus].toString() + "_" }
         metadataList.forEachIndexed { index, modelMetadata ->
             if (modelMetadata.contains(term, ignoreCase = true)) {
                 matchingModelIndexes.add(index)
@@ -340,7 +344,8 @@ enum class Repository (val rep: String){
     RAKIP_WEB ("RAKIP-Web"),
     FSK_WEB("FSK-Web"),
     RENJIN("Renjin"),
-    TRASHBIN("Trash-Bin");
+    TRASHBIN("Trash-Bin"),
+    ANY("Any");
     companion object {
         private val mapping = values().associateBy(Repository::rep)
         fun fromSymbol(rep: String) = mapping[rep]
@@ -349,7 +354,8 @@ enum class Repository (val rep: String){
 
 enum class Status(val key: String){
     UNCURATED("Uncurated"),
-    CURATED("Curated");
+    CURATED("Curated"),
+    ANY("Any");
     companion object {
         private val mapping = values().associateBy(Status::key)
         fun fromSymbol(key: String) = mapping[key]
@@ -359,9 +365,15 @@ enum class Status(val key: String){
 private fun whereFilter(mId: String = "",
                         repository: Repository=Repository.FSK_WEB,
                         status: Status=Status.CURATED): Op<Boolean>{
+    var predicates : Op<Boolean> = MODELS.mId.isNotNull() ;
 
-    if(mId.equals("")){
-        return (MODELS.mRepository eq repository.rep).and(MODELS.mStatus eq status.key);
-    }
-    return (MODELS.mId eq mId).and(MODELS.mRepository eq repository.rep).and(MODELS.mStatus eq status.key);
+    if(repository != Repository.ANY)
+        predicates = predicates.and(MODELS.mRepository eq repository.rep)
+    if(status != Status.ANY)
+        predicates = predicates.and(MODELS.mStatus eq status.key)
+
+    if(mId.isNotEmpty())
+        predicates = predicates.and(MODELS.mId eq mId)
+
+    return predicates
 }

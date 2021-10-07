@@ -1,6 +1,6 @@
 
-var _endpoint = 'http://localhost:8080/landingpage/DB/' || _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
-var _token = '?repository=RAKIP-Web&status=Uncurated'
+var _endpoint = _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
+var _token = _token
 var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
 	image			: _endpoint + 'image/',

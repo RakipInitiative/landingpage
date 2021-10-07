@@ -10,7 +10,8 @@
     <body>
         <!-- Assign local backend -->
         <script>
-            _endpoint = "${representation.rakip_endpoint}/RAKIP-Web/";
+            _endpoint = "${representation.endpoint}/DB/";
+            _token = "${representation.rakip_token}";
         </script>
         <!-- vendors js -->
         <script src="${representation.rakip_endpoint}/assets/js/lib/jquery.3.4.1.min.js" ></script>
