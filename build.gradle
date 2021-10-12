@@ -44,6 +44,14 @@ sourceSets {
 
 repositories {
     jcenter()
+    maven {
+        name 'fskml'
+        url 'https://maven.pkg.github.com/silebat/fskml'
+        credentials {
+            username project.findProperty("github.packages.username") ?: System.getenv("GITHUB_NAME")
+            password project.findProperty("github.packages.password") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
     maven { url "https://dl.bintray.com/kotlin/ktor" }
     maven { url = uri("https://nexus.bedatadriven.com/content/groups/public") }
     maven { url = uri("https://dl.bintray.com/silebat/bfr-formats") }
@@ -70,7 +78,7 @@ dependencies {
 
     // Formats
     compile "de.uni-rostock.sbi:CombineArchive:1.4.0"
-    compile "de.bund.bfr:fskml:1.0.13"
+    compile "de.bund.bfr:fskml:1.0.12"
     compile "org.jlibsedml:jlibsedml:2.2.3"
 
     // R

@@ -369,6 +369,10 @@ private fun whereFilter(mId: String = "",
 
     if(repository != Repository.ANY)
         predicates = predicates.and(MODELS.mRepository eq repository.rep)
+    if(repository == Repository.ANY)
+        predicates = predicates.and(MODELS.mRepository eq Repository.RAKIP_WEB.rep)
+            .or(MODELS.mRepository eq Repository.FSK_WEB.rep)
+            .or(MODELS.mRepository eq Repository.RENJIN.rep)
     if(status != Status.ANY)
         predicates = predicates.and(MODELS.mStatus eq status.key)
 

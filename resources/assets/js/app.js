@@ -14649,6 +14649,22 @@ var APPModalMTSimulations = function (_APPModal2) {
 								for (var j = 0; j < decimals; j++) {
 									step = step / 10;
 								}
+
+								var _step2 = 1;
+
+								// calc decimals for slider steps depending on min-max values
+								if (param.dataType.toLowerCase() === 'double') {
+									var _decimals = param.value.substring(param.value.indexOf('.') + 1).length;
+									for (var _j = 0; _j < _decimals; _j++) {
+										_step2 = _step2 / 10;
+									}
+									// add decimals support
+									if (_decimals > 0) {
+										$input.attr('data-touchspin-decimals', true);
+									}
+								}
+								// add step range
+								$input.attr('data-touchspin-step', _step2);
 							}
 
 							// add rangeslider attributes
