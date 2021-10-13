@@ -15365,6 +15365,8 @@ var APPModalMTSimulations = function (_APPModal2) {
                 // remove element "desc" since that was added by UI Designer
                 delete(payload["desc"])
 
+                // remove element "params", since that is not correct for FSKX files and "parameters" is still there
+                delete(payload["params"])
 				//var result = await _fetchData._content(_endpoints.execution, modelId); //O._app._getExecutionResult( modelId ) ;
                 var result = await _fetchData._contentPost(_endpoints.execution, modelId, payload, O._signal); //O._app._getExecutionResult( modelId ) ;
 				// clear tab content

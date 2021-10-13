@@ -147,7 +147,8 @@ fun Route.handleGetRequests(){
         }
     }
     // endpoint to run models with a posted simulation in the body(JSON)
-    post("/DB/execute/{i}") {
+    post("/DB/execute/{id}") {
+        //val sim = call.receive<FskSimulation>()
         call.parameters["id"]?.let { mId ->
             try {
                 handleExecutionRequest(mId)
