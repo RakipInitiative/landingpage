@@ -15330,7 +15330,7 @@ var APPModalMTSimulations = function (_APPModal2) {
 
 			modelId = O._modelMetadata["generalInformation"]["identifier"]; //modelId || O._modelId;
 
-			if (modelId >= 0) {
+			if (modelId) {
 
 				O._fetchController = new AbortController();
 				O._signal = O._fetchController.signal;
