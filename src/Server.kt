@@ -211,6 +211,8 @@ fun Application.module(testing: Boolean = false) {
         val fskweb_endpoint = baseUrl ?: ""
         val fskweb_resourcesFolder = context
         val rakip_token = rakip_token
+        val fskweb_token = fskweb_token
+        val renjin_token = renjin_token
     }
 
     /** Helper function for retrieving execution and upload times. */
