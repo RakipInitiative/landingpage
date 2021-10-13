@@ -15328,7 +15328,7 @@ var APPModalMTSimulations = function (_APPModal2) {
 			var O = this;
 			_log('MODAL SIM / _runModelView : ' + O._modelId, 'secondary');
 
-			modelId = modelId || O._modelId;
+			modelId = O._modelMetadata["generalInformation"]["identifier"]; //modelId || O._modelId;
 
 			if (modelId >= 0) {
 
