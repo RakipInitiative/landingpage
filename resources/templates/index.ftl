@@ -10,7 +10,10 @@
     <body>
         <!-- Assign local backend -->
         <script>
-            _endpoint = "${representation.endpoint}";
+            //_endpoint = "${representation.endpoint}";
+            _endpoint = "${representation.endpoint}/DB/";
+            _token = "${representation.renjin_token}";
+
         </script>
 
         <!-- vendors js -->

@@ -1,9 +1,6 @@
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import de.bund.bfr.fskml.FSKML
-import de.bund.bfr.fskml.FskMetaDataObject
 import de.bund.bfr.landingpage.*
-import de.unirostock.sems.cbarchive.CombineArchive
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -12,10 +9,11 @@ import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notLike
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
-import java.net.URI
 import java.util.ArrayList
 
 
@@ -23,8 +21,8 @@ import java.util.ArrayList
 val MAPPER = ObjectMapper()
 val appConfiguration = loadConfiguration()
 
-val basePath = appConfiguration.getProperty("base_path"); //"/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/"
-val repositoryName =appConfiguration.getProperty("repository_name"); //"RepositoryDB"
+val basePath: String = appConfiguration.getProperty("base_path") //"/home/thschuel/KNIME_TESTING_ENV/test_build/workspace/"
+val repositoryName: String =appConfiguration.getProperty("repository_name") //"RepositoryDB"
 fun Application.databaseRoutes() {
     //************************
 
@@ -45,19 +43,6 @@ fun Application.databaseRoutes() {
 
 fun Route.handleGetRequests(){
 
-    get("/DB/test/{id}") {
-        try {
-            call.parameters["id"]?.let { id ->
-                val rep = call.request.queryParameters["repository"]
-                val status = call.request.queryParameters["status"]
-
-
-                call.respondText("$id:  '$rep' has the following message: ${Repository.FSK_WEB.rep}")
-            }
-        } catch (err: Exception) {
-            call.respond(HttpStatusCode.NotFound)
-        }
-    }
     get("/DB/metadata") {
         handleGetMetadataRequest()
     }
@@ -78,7 +63,7 @@ fun Route.handleGetRequests(){
         }
     }
     get("/DB/download/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleDownloadRequest(mId)
             } catch (err: Exception) {
@@ -87,7 +72,7 @@ fun Route.handleGetRequests(){
         }
     }
     get("/DB/image/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleImageRequest(mId)
             } catch (err: Exception) {
@@ -96,17 +81,16 @@ fun Route.handleGetRequests(){
         }
     }
     get("/DB/modelscript/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleGetPropertyByIdRequest(mId,MODELS.mModelScript)
-                //handleScriptRequest(mId, FskMetaDataObject.ResourceType.modelScript)
             } catch (err: Exception) {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
     }
     get("/DB/visualizationscript/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleGetPropertyByIdRequest(mId,MODELS.mVisualizationScript)
             } catch (err: Exception) {
@@ -115,7 +99,7 @@ fun Route.handleGetRequests(){
         }
     }
     get("/DB/readme/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleGetPropertyByIdRequest(mId,MODELS.mReadme)
             } catch (err: Exception) {
@@ -124,7 +108,7 @@ fun Route.handleGetRequests(){
         }
     }
     get("/DB/simulations/{id}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleGetPropertyByIdRequest(mId,MODELS.mSimulations)
             } catch (err: Exception) {
@@ -132,8 +116,29 @@ fun Route.handleGetRequests(){
             }
         }
     }
+
     get("/DB/search/{term}") {
-        call.parameters["term"]?.toString()?.let {term ->
+        call.parameters["term"]?.let { term ->
+            try {
+                handleSearchRequest(term)
+            } catch (err: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
+    // Search for Zenodo DOI : Sandbox.zenodo
+    get("/DB/search/10.5072/{term}") {
+        call.parameters["term"]?.let { term ->
+            try {
+                handleSearchRequest(term)
+            } catch (err: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+    }
+    // Search for Zenodo DOI : Zenodo.org
+    get("/DB/search/10.5281/{term}") {
+        call.parameters["term"]?.let { term ->
             try {
                 handleSearchRequest(term)
             } catch (err: Exception) {
@@ -143,10 +148,9 @@ fun Route.handleGetRequests(){
     }
     // endpoint to run models with a posted simulation in the body(JSON)
     post("/DB/execute/{i}") {
-        call.parameters["id"]?.toString()?.let {mId ->
+        call.parameters["id"]?.let { mId ->
             try {
                 handleExecutionRequest(mId)
-                //handleScriptRequest(mId, FskMetaDataObject.ResourceType.modelScript)
             } catch (err: Exception) {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -160,20 +164,22 @@ fun Route.handleGetRequests(){
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequest() {
     var allOutcomes: List<JsonNode> = ArrayList()
 
-    val parameters = getParameters(call);
+    val parameters = getParameters(call)
     transaction {
-        allOutcomes = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
+        allOutcomes = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second)}
+            .map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
     }.apply {
         call.respond(allOutcomes)
     }
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequest(property: Column<String?>) {
-    var result = mutableMapOf<String, String>()
-    val parameters = getParameters(call);
+    val result = mutableMapOf<String, String>()
+    val parameters = getParameters(call)
     transaction {
 
-        MODELS.slice(MODELS.mId, property).select{whereFilter("",parameters.first,parameters.second)}.map {it[MODELS.mId] +"," + it[property]}.forEach {
+        MODELS.slice(MODELS.mId, property).select{whereFilter("",parameters.first,parameters.second)}
+            .map {it[MODELS.mId] +"," + it[property]}.forEach {
             val tokens = it.split(",")
             val mId = tokens[0]
             result[mId] = if (tokens[1] != "null") tokens[1] else ""
@@ -182,13 +188,15 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequ
         call.respond(result)
     }
 }
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyByIdRequest(mId: String, property: Column<String?>) {
-    var result: String = String()
-    val parameters = getParameters(call);
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyByIdRequest(mId: String,
+                                                                                        property: Column<String?>) {
+    var result = String()
+    val parameters = getParameters(call)
     transaction {
-        result = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[property]}.firstOrNull().toString()
+        result = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}
+            .map { resultRow -> resultRow[property]}.firstOrNull().toString()
     }.apply {
-        if(result.equals("null")) {
+        if(result == "null") {
             call.respond("")
         } else {
             call.respond(result)
@@ -197,27 +205,29 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyById
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest(mId : String) {
-    var filePath: String = basePath;
-    val parameters = getParameters(call);
+    var filePath: String = basePath
+    val parameters = getParameters(call)
     transaction {
-        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.first()
+        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}
+            .map { resultRow -> resultRow[MODELS.mFilePath]}.first()
         result?.let {
             filePath +=  result.toString()
         }
     }.apply {
-        call.response.header("Content-Disposition", "attachment; filename=${mId + ".fskx"}")
+        call.response.header("Content-Disposition", "attachment; filename=${"$mId.fskx"}")
         call.respondFile(File(filePath))
     }
 }
 
 // image
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mId : String) {
-    var filePath: String = basePath;
-    val parameters = getParameters(call);
+    var filePath: String = basePath
+    val parameters = getParameters(call)
     var svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
             "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
     transaction {
-        val result = MODELS.slice(MODELS.mPlotPath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mPlotPath]}.first()
+        val result = MODELS.slice(MODELS.mPlotPath).select{whereFilter(mId,parameters.first,parameters.second)}
+            .map { resultRow -> resultRow[MODELS.mPlotPath]}.first()
         result?.let {
             filePath += result.toString()
             svg = File(filePath).readText()
@@ -229,13 +239,14 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mI
 }
 
 // Deprecated since scripts are stored in DB
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(mId : String,
+/*private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(mId : String,
                                                                                scriptResource: FskMetaDataObject.ResourceType) {
     var filePath: String = basePath;
     var script = String()
     val parameters = getParameters(call);
     transaction {
-        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
+        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}
+            .map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
         result?.let{
             filePath += result
             MODELS.slice(MODELS.mMetadata).select{whereFilter(mId,parameters.first,parameters.second)}
@@ -258,16 +269,17 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleScriptRequest(m
 
         call.respondText(script)
     }
-}
+}*/
 // Execute model with Simulation (POST); RENJIN ONLY!
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleExecutionRequest(mId : String) {
-    var filePath: String = basePath;
-    var script = String()
-    val parameters = getParameters(call);
+    var filePath: String = basePath
+    //var script = String()
+    val parameters = getParameters(call)
     if(parameters.first == Repository.RENJIN){
         val sim = call.receive<FskSimulation>()
         transaction {
-            val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}.map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
+            val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}
+                .map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
             result?.let{
                 filePath += result
 
@@ -284,15 +296,17 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleExecutionReques
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(term: String) {
-    var metadataList: List<String> = ArrayList()
+    var metadataList: List<String>
     val matchingModelIndexes = mutableListOf<Int>()
-    val parameters = getParameters(call);
+    val parameters = getParameters(call)
     transaction {
-        metadataList = MODELS.slice(MODELS.mMetadata, MODELS.mRepository, MODELS.mStatus)
+        metadataList = MODELS
                 .select{whereFilter("",parameters.first,parameters.second) }
                 .map { resultRow -> resultRow[MODELS.mMetadata].toString() +
                         "repo:" + resultRow[MODELS.mRepository].toString() + "_" +
-                        "status:" + resultRow[MODELS.mStatus].toString() + "_" }
+                        "status:" + resultRow[MODELS.mStatus].toString() + "_" +
+                        "doi:" + resultRow[MODELS.mDoi].toString() + "_" +
+                        "conceptDoi:" + resultRow[MODELS.mConceptDoi].toString() + "_"}
         metadataList.forEachIndexed { index, modelMetadata ->
             if (modelMetadata.contains(term, ignoreCase = true)) {
                 matchingModelIndexes.add(index)
@@ -302,7 +316,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(t
         call.respond(matchingModelIndexes)
     }
 }
-private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataObject.ResourceType): String {
+/*private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataObject.ResourceType): String {
     var x = 22;
     var result = CombineArchive(modelFile).use {
         it.getEntriesWithFormat(uri).filter { entry -> entry.descriptions.isNotEmpty() }.first { entry ->
@@ -312,12 +326,12 @@ private fun readScript(modelFile: File, uri: URI, scriptResource : FskMetaDataOb
         }.loadTextEntry()
     }
     return result;
-}
+}*/
 
 private fun getParameters(call: ApplicationCall):Pair<Repository,Status>{
 
-    val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString())?.let{it} ?:Repository.FSK_WEB
-    val status = Status.fromSymbol(call.request.queryParameters["status"].toString())?.let{it} ?:Status.CURATED
+    val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString()) ?:Repository.FSK_WEB
+    val status = Status.fromSymbol(call.request.queryParameters["status"].toString()) ?:Status.CURATED
     return Pair(rep,status)
 }
 
@@ -338,6 +352,7 @@ object MODELS : org.jetbrains.exposed.sql.Table("Models") {
     val mExecutionTime = varchar("ExecutionTime", 255).nullable()
     val mUploadDate = varchar("UploadDate", 255).nullable()
     val mUploadedBy = varchar("UploadedBy", 255).nullable()
+
 }
 
 enum class Repository (val rep: String){
@@ -365,14 +380,12 @@ enum class Status(val key: String){
 private fun whereFilter(mId: String = "",
                         repository: Repository=Repository.FSK_WEB,
                         status: Status=Status.CURATED): Op<Boolean>{
-    var predicates : Op<Boolean> = MODELS.mId.isNotNull() ;
+    var predicates : Op<Boolean> = MODELS.mId.isNotNull()
 
     if(repository != Repository.ANY)
-        predicates = predicates.and(MODELS.mRepository eq repository.rep)
+        predicates = predicates.and(MODELS.mRepository like "%" + repository.rep + "%")
     if(repository == Repository.ANY)
-        predicates = predicates.and(MODELS.mRepository eq Repository.RAKIP_WEB.rep)
-            .or(MODELS.mRepository eq Repository.FSK_WEB.rep)
-            .or(MODELS.mRepository eq Repository.RENJIN.rep)
+        predicates = predicates.and(MODELS.mRepository notLike "%" + Repository.TRASHBIN.rep + "%" )
     if(status != Status.ANY)
         predicates = predicates.and(MODELS.mStatus eq status.key)
 
