@@ -14,8 +14,10 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.notLike
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
+import java.security.MessageDigest
 import java.util.ArrayList
-
+import java.io.FileInputStream
+import java.io.InputStream
 
 
 val MAPPER = ObjectMapper()
@@ -40,6 +42,7 @@ fun Application.databaseRoutes() {
 
 
 }
+
 
 fun Route.handleGetRequests(){
 
@@ -167,7 +170,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetMetadataRequ
 
     val parameters = getParameters(call)
     transaction {
-        allOutcomes = MODELS.slice(MODELS.mMetadata).select{whereFilter("",parameters.first,parameters.second)}
+        allOutcomes = MODELS.slice(MODELS.mMetadata)
+            .select{whereFilter(repository = parameters.first, status = parameters.second, filter = parameters.third)}
             .map { resultRow -> resultRow[MODELS.mMetadata]}.map{MAPPER.readTree(it) }
     }.apply {
         call.respond(allOutcomes)
@@ -179,7 +183,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetDateTimeRequ
     val parameters = getParameters(call)
     transaction {
 
-        MODELS.slice(MODELS.mId, property).select{whereFilter("",parameters.first,parameters.second)}
+        MODELS.slice(MODELS.mId, property)
+            .select{whereFilter(repository = parameters.first, status = parameters.second, filter = parameters.third)}
             .map {it[MODELS.mId] +"," + it[property]}.forEach {
             val tokens = it.split(",")
             val mId = tokens[0]
@@ -194,7 +199,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleGetPropertyById
     var result = String()
     val parameters = getParameters(call)
     transaction {
-        result = MODELS.slice(property).select{whereFilter(mId,parameters.first,parameters.second)}
+        result = MODELS.slice(property)
+            .select{whereFilter(mId= mId, repository = parameters.first, status = parameters.second, filter = parameters.third)}
             .map { resultRow -> resultRow[property]}.firstOrNull().toString()
     }.apply {
         if(result == "null") {
@@ -209,7 +215,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest
     var filePath: String = basePath
     val parameters = getParameters(call)
     transaction {
-        val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}
+        val result = MODELS.slice(MODELS.mFilePath)
+            .select{whereFilter(mId= mId, repository = parameters.first, status = parameters.second, filter = parameters.third)}
             .map { resultRow -> resultRow[MODELS.mFilePath]}.first()
         result?.let {
             filePath +=  result.toString()
@@ -227,7 +234,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mI
     var svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
             "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
     transaction {
-        val result = MODELS.slice(MODELS.mPlotPath).select{whereFilter(mId,parameters.first,parameters.second)}
+        val result = MODELS.slice(MODELS.mPlotPath)
+            .select{whereFilter(mId= mId, repository = parameters.first, status = parameters.second, filter = parameters.third)}
             .map { resultRow -> resultRow[MODELS.mPlotPath]}.first()
         result?.let {
             filePath += result.toString()
@@ -274,12 +282,15 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mI
 // Execute model with Simulation (POST); RENJIN ONLY!
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleExecutionRequest(mId : String) {
     var filePath: String = basePath
+
+
     //var script = String()
     val parameters = getParameters(call)
     if(parameters.first == Repository.RENJIN){
         val sim = call.receive<FskSimulation>()
         transaction {
-            val result = MODELS.slice(MODELS.mFilePath).select{whereFilter(mId,parameters.first,parameters.second)}
+            val result = MODELS.slice(MODELS.mFilePath)
+                .select{whereFilter(mId= mId, repository = parameters.first, status = parameters.second, filter = parameters.third)}
                 .map { resultRow -> resultRow[MODELS.mFilePath]}.firstOrNull()
             result?.let{
                 filePath += result
@@ -289,6 +300,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleExecutionReques
             }
 
         }.apply {
+            // Calculate CHECKSUM to see if model file in DB is still valid
+            //val check = createChecksum(filePath)?.fold("", { str, it -> str + "%02x".format(it) })
             val model = readModel(File(filePath))
             call.respondText(model.run(sim))
         }
@@ -300,17 +313,28 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(t
     var metadataList: List<String>
     val matchingModelIndexes = mutableListOf<Int>()
     val parameters = getParameters(call)
+
     transaction {
-        metadataList = MODELS
-                .select{whereFilter("",parameters.first,parameters.second) }
+         metadataList = MODELS
+                .select{
+                    whereFilter(repository=parameters.first,status=parameters.second, filter = parameters.third)
+                }
                 .map { resultRow -> resultRow[MODELS.mMetadata].toString() +
                         "repo:" + resultRow[MODELS.mRepository].toString() + "_" +
                         "status:" + resultRow[MODELS.mStatus].toString() + "_" +
                         "doi:" + resultRow[MODELS.mDoi].toString() + "_" +
                         "conceptDoi:" + resultRow[MODELS.mConceptDoi].toString() + "_"}
+
         metadataList.forEachIndexed { index, modelMetadata ->
-            if (modelMetadata.contains(term, ignoreCase = true)) {
-                matchingModelIndexes.add(index)
+            if(term.contains("repo:")){
+                val t = modelMetadata.substring(modelMetadata.indexOf("repo:[") + 6
+                    ,modelMetadata.lastIndexOf("]")).toLowerCase().split(',')
+                if (t.contains(term.substring(5)))
+                    matchingModelIndexes.add(index)
+            } else {
+                if (modelMetadata.contains(term, ignoreCase = true)) {
+                    matchingModelIndexes.add(index)
+                }
             }
         }
     }.apply {
@@ -329,11 +353,12 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleSearchRequest(t
     return result;
 }*/
 
-private fun getParameters(call: ApplicationCall):Pair<Repository,Status>{
+private fun getParameters(call: ApplicationCall):Triple<Repository,Status,String>{
 
     val rep = Repository.fromSymbol(call.request.queryParameters["repository"].toString()) ?:Repository.FSK_WEB
     val status = Status.fromSymbol(call.request.queryParameters["status"].toString()) ?:Status.CURATED
-    return Pair(rep,status)
+    val filter = call.request.queryParameters["filter"] ?: ""
+    return Triple(rep,status,filter)
 }
 
 object MODELS : org.jetbrains.exposed.sql.Table("Models") {
@@ -353,6 +378,7 @@ object MODELS : org.jetbrains.exposed.sql.Table("Models") {
     val mExecutionTime = varchar("ExecutionTime", 255).nullable()
     val mUploadDate = varchar("UploadDate", 255).nullable()
     val mUploadedBy = varchar("UploadedBy", 255).nullable()
+    val mChecksum  = varchar("Checksum", 255).nullable()
 
 }
 
@@ -380,9 +406,12 @@ enum class Status(val key: String){
 // FILTER BY REPOSITORY AND STATUS
 private fun whereFilter(mId: String = "",
                         repository: Repository=Repository.FSK_WEB,
-                        status: Status=Status.CURATED): Op<Boolean>{
+                        status: Status=Status.CURATED,
+                        filter: String = ""): Op<Boolean>{
     var predicates : Op<Boolean> = MODELS.mId.isNotNull()
 
+    if(filter.isNotEmpty())
+        predicates = predicates.and(MODELS.mName like "%$filter%")
     if(repository != Repository.ANY)
         predicates = predicates.and(MODELS.mRepository like "%" + repository.rep + "%")
     if(repository == Repository.ANY)
@@ -394,4 +423,24 @@ private fun whereFilter(mId: String = "",
         predicates = predicates.and(MODELS.mId eq mId)
 
     return predicates
+}
+
+// CHECKSUM FOR MODEL FILES
+@Throws(Exception::class)
+fun createChecksum(filename: String?): ByteArray? {
+    val complete = MessageDigest.getInstance("SHA-256")
+    filename?.let {
+        val fis: InputStream = FileInputStream(it)
+        val buffer = ByteArray(1024)
+
+        var numRead: Int
+        do {
+            numRead = fis.read(buffer)
+            if (numRead > 0) {
+                complete.update(buffer, 0, numRead)
+            }
+        } while (numRead != -1)
+        fis.close()
+    }
+    return complete.digest()
 }
