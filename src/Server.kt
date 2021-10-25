@@ -241,7 +241,7 @@ fun Application.module(testing: Boolean = false) {
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
         get("/FSK-Web-Model-Repository") {
-            call.respond(FreeMarkerContent("curated.ftl", mapOf("representation" to representation), ""))
+            call.respond(FreeMarkerContent("fskweb.ftl", mapOf("representation" to representation), ""))
             //call.respondText("coming soon")
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
