@@ -18,10 +18,10 @@
         <script src="${representation.fskweb_endpoint}/assets/js/lib/jquery.3.4.1.min.js" ></script>
         <!-- bfr data js -->
         <script src="${representation.fskweb_endpoint}/assets/js/editor_data.js"></script>
-        <!-- bfr app js -->
-        <script src="${representation.fskweb_endpoint}/assets/js/app.js"></script>
         <!-- page script for initializing app -->
         <script src="${representation.fskweb_endpoint}/assets/js/fskweb_scripts.js"></script>
+        <!-- bfr app js -->
+        <script src="${representation.fskweb_endpoint}/assets/js/app.js"></script>
         <script>
             _appVars.header.brand.logo = "${representation.fskweb_endpoint}/assets/img/bfr_logo.gif";
         </script>
