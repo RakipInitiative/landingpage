@@ -231,12 +231,24 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleDownloadRequest
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleImageRequest(mId : String) {
     var filePath: String = basePath
     val parameters = getParameters(call)
-    var svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
-            "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+    var svg = """<?xml version='1.0'?>
+<svg xmlns='http://www.w3.org/2000/svg'
+     height='300px' width='300px'
+     version='1.1'
+     viewBox='-300 -300 600 600'
+     font-family='Bitstream Vera Sans,Liberation Sans, Arial, sans-serif'
+     font-size='72'
+     text-anchor='middle' >
+  
+  <circle stroke='#AAA' stroke-width='10' r='280' fill='#FFF'/>
+  <text style='fill:#444;'>
+    <tspan x='0' y='-8'>NO IMAGE</tspan><tspan x='0' y='80'>AVAILABLE</tspan>
+  </text>
+</svg>"""
     transaction {
         val result = MODELS.slice(MODELS.mPlotPath)
             .select{whereFilter(mId= mId, repository = parameters.first, status = parameters.second, filter = parameters.third)}
-            .map { resultRow -> resultRow[MODELS.mPlotPath]}.first()
+            .map { resultRow -> resultRow[MODELS.mPlotPath]}.firstOrNull()
         result?.let {
             filePath += result.toString()
             svg = File(filePath).readText()
