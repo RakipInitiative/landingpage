@@ -47,10 +47,7 @@ repositories {
     maven {
         name 'fskml'
         url 'https://maven.pkg.github.com/silebat/fskml'
-        credentials {
-            username project.findProperty("github.packages.username") ?: System.getenv("GITHUB_NAME")
-            password project.findProperty("github.packages.password") ?: System.getenv("GITHUB_TOKEN")
-        }
+
     }
 
     //maven { url "https://dl.bintray.com/kotlin/ktor" }
@@ -67,8 +64,8 @@ dependencies {
             "org.apache.tomcat.embed:tomcat-embed-jasper:$tomcat_version"
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.15.0'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.15.0'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.16.0'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.16.0'
 
     compile "io.ktor:ktor-server-servlet:$ktor_version"
     compile "io.ktor:ktor-freemarker:$ktor_version"
@@ -102,8 +99,8 @@ dependencies {
     //compile 'org.renjin.cran:plyr:1.8.4-b107'
     compile( 'org.renjin.cran:MALDIquant:1.19.3-b1')
     compile 'org.renjin.cran:dplyr:0.8.2-b6'
-    compile("org.apache.logging.log4j:log4j-slf4j-impl:2.15.0")
-    compile("org.apache.logging.log4j:log4j-1.2-api:2.15.0")
+    compile("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
+    compile("org.apache.logging.log4j:log4j-1.2-api:2.16.0")
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
 }
 
