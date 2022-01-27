@@ -27,7 +27,7 @@ The *landingpage.properties* is a simple Java properties file with the following
 * `plot_folder`: Folder with SVG model plots.
 * `model_time_date.csv`: CSV file describing the execution and upload times of the models in the model folder. See more details at [model_time_date.csv](#model_time_datecsv).
 * `base_url`: Url to application.
-* `context`: Path of the application if deployed under an application container. For example for https://knime.bfr.berlin/landingpage the context is `landingpage`. This can be omitted for local applications not running in a container.
+* `context`: Path of the application if deployed under an application container. For example for https://localhost/landingpage the context is `landingpage`. This can be omitted for local applications not running in a container.
 
 Example landingpage.properties file:
 ```
