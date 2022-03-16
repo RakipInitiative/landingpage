@@ -23,7 +23,7 @@
         <!-- bfr app js -->
         <script src="${representation.rakip_endpoint}/assets/js/app.js"></script>
         <script>
-            _appVars.header.brand.logo = "${representation.rakip_endpoint}/assets/img/bfr_logo.gif";
+            _appVars.header.brand.logo = "${representation.rakip_endpoint}/assets/img/RAKIP_logo.jpg";
         </script>
 
         <div class="landingpage pt-0"></div>
