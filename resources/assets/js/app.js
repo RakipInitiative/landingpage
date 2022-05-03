@@ -16627,7 +16627,7 @@ var APPTableMT = function (_APPTable) {
 										rowMatchesFilter = false;
 									}
 								} else {
-									if (!facetValue.includes(cellData)) {
+									if (!cellData.includes(facetValue)) {
 										// row data does not match
 										rowMatchesFilter = false;
 									}
