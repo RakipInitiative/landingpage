@@ -241,13 +241,15 @@ fun Application.module(testing: Boolean = false) {
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
         get("/FSK-Web-Model-Repository") {
-            call.respond(FreeMarkerContent("fskweb.ftl", mapOf("representation" to representation), ""))
+            call.respondRedirect("/landingpage/RAKIP-Model-Repository")
+            //call.respond(FreeMarkerContent("fskweb.ftl", mapOf("representation" to representation), ""))
             //call.respondText("coming soon")
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
         }
         get("/FSK-Model-Repository") {
-            call.respondRedirect("/landingpage/FSK-Web-Model-Repository")
+            call.respondRedirect("/landingpage/RAKIP-Model-Repository")
+            //call.respondRedirect("/landingpage/FSK-Web-Model-Repository")
             //call.respondText("coming soon")
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
