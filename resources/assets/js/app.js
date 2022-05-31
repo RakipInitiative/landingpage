@@ -16324,8 +16324,14 @@ var APPTableMT = function (_APPTable) {
 						}
 					} else if (col.field == 'modelType') {
 						//data = modelMetadata['modelType'];
-						data = modelMetadata['generalInformation']['modelCategory']['modelClass'] ? modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";
-                        // special case: (Data) -> Data model
+						if(modelMetadata['generalInformation']['modelCategory']){
+						    data = modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
+						     modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";
+						} else {
+						    data = "Generic model";
+						}
+
+						// special case: (Data) -> Data model
                         if (data === "(Data)") {
                             data = "Data model";
                         }
@@ -16373,8 +16379,11 @@ var APPTableMT = function (_APPTable) {
 				var environment = O._getScopeData(_modelMetadata, 'scope', 'product', 'productName');
 				var hazard = O._getScopeData(_modelMetadata, 'scope', 'hazard', 'hazardName');
 				//var modelType = _modelMetadata['modelType'];
-				var modelType = _modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
-                    _modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";//_modelMetadata2['modelType'];
+				var modelType = "Generic model";
+				if(_modelMetadata['generalInformation']['modelCategory']){
+				    modelType = _modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
+				        _modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";//_modelMetadata2['modelType'];
+                }
                 // special case: (Data) -> Data model
                 if(modelType === "(Data)"){modelType = "Data model";}
 
@@ -16624,7 +16633,7 @@ var APPTableMT = function (_APPTable) {
 								var cellData = rowData.cells[colIndex];
 
 								if (cellData instanceof Set) {
-
+ 
 									var cellMatches = false;
 
 									$.each(facetValue, function (i, val) {
