@@ -24,22 +24,23 @@ var _appVars = {
 			title			: 'RAKIP-Web Model Repository' // false or ''
 		},
 		nav				: [
-                          {
-                             "title": "FSK-Web Home",
-                             "href": "https://knime.bfr.berlin/landingpage/FSK-Web-Model-Repository/"
-                          },
+
                           {
                              "title": "RAKIP-Web Home",
                              "href": "https://knime.bfr.berlin/landingpage/RAKIP-Model-Repository/"
                            },
                            {
-                             "title": "FSK-Web Protected Area",
+                             "title": "RAKIP-Web Protected Area",
                              "href": "https://foodrisklabs.bfr.bund.de/overview-of-fsk-web-protected-area-services/"
                            },
                            {
-                             "title": "FSK-Web Details",
+                             "title": "RAKIP-Web Details",
                              "href": "https://foodrisklabs.bfr.bund.de/functional-details/"
                            },
+                           {
+                              "title": "RAKIP-Web Curation Policy",
+                              "href": "https://foodrisklabs.bfr.bund.de/rakip-web-model-repository-curation-and-publication-policy/"
+                          },
                            {
                              "title": "FSK-Lab Software",
                              "href": "https://foodrisklabs.bfr.bund.de/fsk-lab/"

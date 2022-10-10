@@ -16323,7 +16323,18 @@ var APPTableMT = function (_APPTable) {
 							data = Array.from(data).join(' ');
 						}
 					} else if (col.field == 'modelType') {
-						data = modelMetadata['modelType'];
+						//data = modelMetadata['modelType'];
+						if(modelMetadata['generalInformation']['modelCategory']){
+						    data = modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
+						     modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";
+						} else {
+						    data = "Generic model";
+						}
+
+						// special case: (Data) -> Data model
+                        if (data === "(Data)") {
+                            data = "Data model";
+                        }
 					} else if (col.field == 'executionTime') {
                         data = O._executionTimes[identifier]? O._executionTimes[identifier] :"";
 					} else if (col.field == 'uploadDate') {
@@ -16367,7 +16378,14 @@ var APPTableMT = function (_APPTable) {
 				var software = O._getData(_modelMetadata, 'generalInformation', 'software');
 				var environment = O._getScopeData(_modelMetadata, 'scope', 'product', 'productName');
 				var hazard = O._getScopeData(_modelMetadata, 'scope', 'hazard', 'hazardName');
-				var modelType = _modelMetadata['modelType'];
+				//var modelType = _modelMetadata['modelType'];
+				var modelType = "Generic model";
+				if(_modelMetadata['generalInformation']['modelCategory']){
+				    modelType = _modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
+				        _modelMetadata['generalInformation']['modelCategory']['modelClass'] : "Generic model";//_modelMetadata2['modelType'];
+                }
+                // special case: (Data) -> Data model
+                if(modelType === "(Data)"){modelType = "Data model";}
 
 				// update sets
 				if (software) O._updateSet('software', software);
@@ -16615,19 +16633,22 @@ var APPTableMT = function (_APPTable) {
 								var cellData = rowData.cells[colIndex];
 
 								if (cellData instanceof Set) {
-
+ 
 									var cellMatches = false;
 
 									$.each(facetValue, function (i, val) {
 										// check set for matching one of the facet values
-										cellData.has(val) ? cellMatches = true : null;
+										//cellData.has(val) ? cellMatches = true : null;
+										for (const element of cellData) {
+                                            element.includes(val.trim()) ? cellMatches = true : null;
+                                        }
 									});
 
 									if (!cellMatches) {
 										rowMatchesFilter = false;
 									}
 								} else {
-									if (!facetValue.includes(cellData)) {
+									if (!cellData.includes(facetValue)) {
 										// row data does not match
 										rowMatchesFilter = false;
 									}
