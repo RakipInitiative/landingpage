@@ -25,7 +25,7 @@
         <!-- page script for initializing app -->
         <script src="${representation.resourcesFolder}/assets/js/scripts.js"></script>
         <script>
-            _appVars.header.brand.logo = "${representation.resourcesFolder}/assets/img/RAKIP_logo.jpg";
+            _appVars.header.brand.logo = "${representation.resourcesFolder}/assets/img/RAKIP_Logo_BG_transparent.png";
         </script>
 
         <div class="landingpage pt-0"></div>
