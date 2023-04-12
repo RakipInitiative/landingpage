@@ -1,6 +1,7 @@
 
-var _endpoint = _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
+var _endpoint = _endpoint || window.location.origin + '/landingpage/DB/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
 var _token = _token
+var landingpage_home = window.location.origin + "/landingpage/"
 var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
 	image			: _endpoint + 'image/',
@@ -27,7 +28,7 @@ var _appVars = {
 
                           {
                              "title": "RAKIP-Web Home",
-                             "href": "https://knime.bfr.berlin/landingpage/RAKIP-Model-Repository/"
+                             "href": landingpage_home + "RAKIP-Model-Repository/"
                            },
                            {
                              "title": "RAKIP-Web Protected Area",
@@ -47,11 +48,11 @@ var _appVars = {
                            },
                            {
                              "title": "Masthead",
-                             "href": "https://knime.bfr.berlin/landingpage/masthead"
+                             "href": landingpage_home + "masthead"
                            },
                            {
                              "title": "Data Protection Declaration",
-                             "href": "https://knime.bfr.berlin/landingpage/dataProtectionDeclaration"
+                             "href": landingpage_home + "dataProtectionDeclaration"
                            }
                           ]
 	},
@@ -85,10 +86,16 @@ var _appVars = {
 					click 			: ( O, $action, rowIndex, rowData ) => {
 					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
 					    var repository = window.location.pathname.split("/").pop();
-						window.open( 'https://knime.bfr.berlin/knime/webportal/space/RAKIP-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
+						window.open( window.location.origin + '/knime/webportal/space/RAKIP-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
 					}
 				}
-			}
+			},
+			{
+                type 			: 'modal',
+                idPrefix 		: 'mtUnavailable_',
+                icon			: 'icon-minus-circle',
+                title 			: 'Not available for download'
+            }
 //			{
 //				type 			: 'modal',
 //				idPrefix 		: 'mtActionSim_',

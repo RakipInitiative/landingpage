@@ -409,6 +409,7 @@ enum class Repository (val rep: String){
 enum class Status(val key: String){
     UNCURATED("Uncurated"),
     CURATED("Curated"),
+    REVIEW("Review"),
     ANY("Any");
     companion object {
         private val mapping = values().associateBy(Status::key)

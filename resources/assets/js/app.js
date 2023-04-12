@@ -15785,8 +15785,27 @@ var APPTable = function () {
 								$action.attr('data-toggle', 'modal').attr('data-target', action.target).attr('data-modal-id', rowIndex);
 							}
 						}
-						// append to td
-						$action.appendTo($tdActions);
+						// TODO: implement this so uncurated models can't be downloaded
+
+						if(action.idPrefix == "mtActionDownload_"){
+						    //if(rowData.modelMetadata && rowData.modelMetadata.generalInformation ){
+                                //model_status = rowData.modelMetadata.generalInformation.status;
+                                //if(model_status == "Curated"){
+                                    $action.appendTo($tdActions);
+                                //}
+						    //}
+                        } else if (action.idPrefix == "mtUnavailable_"){
+                            /*if(rowData.modelMetadata && rowData.modelMetadata.generalInformation ){
+                                model_status = rowData.modelMetadata.generalInformation.status;
+                                if(model_status != "Curated"){
+                                    $action.appendTo($tdActions);
+                                }
+                            }*/
+                            _log("mtUnavailable_");
+                        } else {
+                            $action.appendTo($tdActions);
+                         }
+
 					});
 
 					// wrap actions with inner container of td

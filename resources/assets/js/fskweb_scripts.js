@@ -1,6 +1,7 @@
 
-var _endpoint = _endpoint || 'https://knime.bfr.berlin/landingpage/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
+var _endpoint = _endpoint || window.location.origin + '/landingpage/DB/'; //'https://knime.bfr.berlin/backend/';//http://localhost:8080/' //'https://knime.bfr.berlin/landingpage/';
 var _token = _token
+var landingpage_home = window.location.origin + "/landingpage/"
 var _endpoints 	= {
 	metadata		: _endpoint + 'metadata/',
 	image			: _endpoint + 'image/',
@@ -25,33 +26,33 @@ var _appVars = {
 		},
 		nav				: [
                           {
-                             "title": "FSK-Web Home",
-                             "href": "https://knime.bfr.berlin/landingpage/FSK-Web-Model-Repository/"
-                          },
-                          {
-                             "title": "RAKIP-Web Home",
-                             "href": "https://knime.bfr.berlin/landingpage/RAKIP-Model-Repository/"
-                           },
-                           {
-                             "title": "FSK-Web Protected Area",
-                             "href": "https://foodrisklabs.bfr.bund.de/overview-of-fsk-web-protected-area-services/"
-                           },
-                           {
-                             "title": "FSK-Web Details",
-                             "href": "https://foodrisklabs.bfr.bund.de/functional-details/"
-                           },
-                           {
-                             "title": "FSK-Lab Software",
-                             "href": "https://foodrisklabs.bfr.bund.de/fsk-lab/"
-                           },
-                           {
-                             "title": "Masthead",
-                             "href": "https://knime.bfr.berlin/landingpage/masthead"
-                           },
-                           {
-                             "title": "Data Protection Declaration",
-                             "href": "https://knime.bfr.berlin/landingpage/dataProtectionDeclaration"
-                           }
+                                       "title": "RAKIP-Web Home",
+                                       "href": landingpage_home + "RAKIP-Model-Repository/"
+                                     },
+                                     {
+                                       "title": "RAKIP-Web Protected Area",
+                                       "href": "https://foodrisklabs.bfr.bund.de/overview-of-fsk-web-protected-area-services/"
+                                     },
+                                     {
+                                       "title": "RAKIP-Web Details",
+                                       "href": "https://foodrisklabs.bfr.bund.de/functional-details/"
+                                     },
+                                     {
+                                        "title": "RAKIP-Web Curation Policy",
+                                        "href": "https://foodrisklabs.bfr.bund.de/rakip-web-model-repository-curation-and-publication-policy/"
+                                    },
+                                     {
+                                       "title": "FSK-Lab Software",
+                                       "href": "https://foodrisklabs.bfr.bund.de/fsk-lab/"
+                                     },
+                                     {
+                                       "title": "Masthead",
+                                       "href": landingpage_home + "masthead"
+                                     },
+                                     {
+                                       "title": "Data Protection Declaration",
+                                       "href": landingpage_home + "dataProtectionDeclaration"
+                                     }
                           ]
 	},
 	mainTable 			: {
@@ -83,7 +84,7 @@ var _appVars = {
 					click 			: ( O, $action, rowIndex, rowData ) => {
 					    var identifier = rowData["modelMetadata"]["generalInformation"]["identifier"];
 					    var repository = window.location.pathname.split("/").pop();
-						window.open( 'https://knime.bfr.berlin/knime/webportal/space/FSK-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
+						window.open( window.location.origin + '/knime/webportal/space/FSK-Web/Model_Execution?exec' + "&pm:file_ID="+identifier  , '_blank' );
 					}
 				}
 			}

@@ -15656,7 +15656,16 @@ var APPTable = function () {
 							}
 						}
 						// append to td
-						$action.appendTo($tdActions);
+						if(rowData.modelMetadata && rowData.modelMetadata.generalInformation && rowData.modelMetadata.generalInformation.status ){
+						    model_status = rowData.modelMetadata.generalInformation.status;
+						    if(status != "Curated"){
+						        _log("review");
+						    } else {
+						        $action.appendTo($tdActions);
+						    }
+
+						}
+
 					});
 
 					// wrap actions with inner container of td
