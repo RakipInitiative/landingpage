@@ -398,6 +398,7 @@ enum class Repository (val rep: String){
     RAKIP_WEB ("RAKIP-Web"),
     FSK_WEB("FSK-Web"),
     RENJIN("Renjin"),
+    KIDA("KIDA"),
     TRASHBIN("Trash-Bin"),
     ANY("Any");
     companion object {

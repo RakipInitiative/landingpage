@@ -99,6 +99,11 @@ fun Application.module(testing: Boolean = false) {
     val fskweb_rawMetadata: MutableList<String>
     val fskweb_processedMetadata: ProcessedMetadata?
     val fskweb_parsedMetadata: MutableList<JsonNode>
+    val kida_modelFiles: MutableList<File>
+    val kida_filesFolder: String?
+    val kida_rawMetadata: MutableList<String>
+    val kida_processedMetadata: ProcessedMetadata?
+    val kida_parsedMetadata: MutableList<JsonNode>
     val rakipweb_modelFiles: MutableList<File>
     val rakipweb_filesFolder: String?
     val rakipweb_rawMetadata: MutableList<String>
@@ -107,6 +112,7 @@ fun Application.module(testing: Boolean = false) {
     val baseUrl: String?
     val context: String
     val rakip_token: String
+    val kida_token: String
     val fskweb_token: String
     val renjin_token: String
 
@@ -122,6 +128,13 @@ fun Application.module(testing: Boolean = false) {
         fskweb_rawMetadata = mutableListOf()
         fskweb_processedMetadata = null
         fskweb_parsedMetadata = mutableListOf()
+
+        kida_modelFiles = mutableListOf()
+        kida_filesFolder = null
+        kida_rawMetadata = mutableListOf()
+        kida_processedMetadata = null
+        kida_parsedMetadata = mutableListOf()
+
         rakipweb_modelFiles = mutableListOf()
         rakipweb_filesFolder = null
         rakipweb_rawMetadata = mutableListOf()
@@ -132,6 +145,7 @@ fun Application.module(testing: Boolean = false) {
         rakip_token = ""
         fskweb_token = ""
         renjin_token = ""
+        kida_token = ""
     } else {
 
         val appConfiguration = loadConfiguration()
@@ -187,7 +201,17 @@ fun Application.module(testing: Boolean = false) {
         rakipweb_rawMetadata = loadRawMetadata(rakipweb_modelFiles).toMutableList()
         rakipweb_parsedMetadata = rakipweb_rawMetadata.map { MAPPER.readTree(it) }.toMutableList()
 
+        // KIDA
 
+
+        // Model files
+        kida_filesFolder = appConfiguration.getProperty("kida_model_folder")
+        kida_modelFiles = File(kida_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000}.toMutableList()
+        kida_modelFiles.sort()
+
+        // Metadata
+        kida_rawMetadata = loadRawMetadata(kida_modelFiles).toMutableList()
+        kida_parsedMetadata = kida_rawMetadata.map { MAPPER.readTree(it) }.toMutableList()
 
 
         baseUrl = appConfiguration.getProperty("base_url")
@@ -197,10 +221,12 @@ fun Application.module(testing: Boolean = false) {
         processedMetadata = processMetadata(rawMetadata, executionTimes, uploadTimes, baseUrl)
         fskweb_processedMetadata = processMetadata(fskweb_rawMetadata, executionTimes, uploadTimes, baseUrl)
         rakipweb_processedMetadata = processMetadata(rakipweb_rawMetadata, executionTimes, uploadTimes, baseUrl)
+        kida_processedMetadata = processMetadata(kida_rawMetadata, executionTimes, uploadTimes, baseUrl)
 
         rakip_token = appConfiguration.getProperty("rakip_token")
         fskweb_token = appConfiguration.getProperty("fskweb_token")
         renjin_token = appConfiguration.getProperty("renjin_token")
+        kida_token = appConfiguration.getProperty("kida_token")
 
     }
 
@@ -209,17 +235,21 @@ fun Application.module(testing: Boolean = false) {
         val resourcesFolder = context
         val rakip_endpoint = baseUrl ?: ""
         val rakip_resourcesFolder = context
+        val kida_endpoint = baseUrl ?: ""
+        val kida_resourcesFolder = context
         val fskweb_endpoint = baseUrl ?: ""
         val fskweb_resourcesFolder = context
         val rakip_token = rakip_token
         val fskweb_token = fskweb_token
         val renjin_token = renjin_token
+        val kida_token = kida_token
     }
 
     /** Helper function for retrieving execution and upload times. */
     fun getView(index: Int) = processedMetadata?.let { it.views[index] }
     fun getViewFskWeb(index: Int) = fskweb_processedMetadata?.let { it.views[index] }
     fun getViewRakipWeb(index: Int) = rakipweb_processedMetadata?.let { it.views[index] }
+    fun getViewKIDA(index: Int) = kida_processedMetadata?.let { it.views[index] }
 
     downloadRoutes(modelFiles)
     databaseRoutes()
@@ -237,6 +267,12 @@ fun Application.module(testing: Boolean = false) {
         }
         get("/RAKIP-Web-Model-Repository") {
             call.respondRedirect("/landingpage/RAKIP-Model-Repository")
+            //call.respondText("coming soon")
+            //call.respondRedirect("/landingpage")
+            //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
+        }
+        get("/KIDA-Model-Repository") {
+            call.respond(FreeMarkerContent("kida.ftl", mapOf("representation" to representation), ""))
             //call.respondText("coming soon")
             //call.respondRedirect("/landingpage")
             //call.respond(FreeMarkerContent("index.ftl", mapOf("representation" to representation), ""))
@@ -290,6 +326,19 @@ fun Application.module(testing: Boolean = false) {
 
         }
         get("/RAKIP-Web/dataprotectionnotice") {
+            call.respondRedirect("/landingpage/dataprotectionnotice")
+        }
+        get("/KIDA/disclaimer") {
+            call.respondRedirect("/landingpage/disclaimer")
+        }
+        get("/KIDA/masthead") {
+            call.respondRedirect("/landingpage/masthead")
+        }
+        get("/KIDA/dataProtectionDeclaration") {
+            call.respondRedirect("/landingpage/dataProtectionDeclaration")
+
+        }
+        get("/KIDA/dataprotectionnotice") {
             call.respondRedirect("/landingpage/dataprotectionnotice")
         }
         get("/FSK-Web/disclaimer") {
@@ -346,11 +395,23 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
-        // FSK-Web download
+        // RAKIP-Web download
         get("/RAKIP-Web/download/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = rakipweb_modelFiles[it]
+                    call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
+                    call.respondFile(modelFile)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        // KIDA download
+        get("/KIDA/download/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = kida_modelFiles[it]
                     call.response.header("Content-Disposition", "attachment; filename=${modelFile.name}")
                     call.respondFile(modelFile)
                 } catch (err: IndexOutOfBoundsException) {
@@ -394,6 +455,9 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/metadata") {
             call.respond(rakipweb_parsedMetadata)
         }
+        get("/KIDA/metadata") {
+            call.respond(kida_parsedMetadata)
+        }
 
         get("/FSK-Web-Model-Repository/metadata") {
             call.respond(emptyList<JsonNode>())
@@ -415,7 +479,11 @@ fun Application.module(testing: Boolean = false) {
                 call.respond(rakipweb_parsedMetadata[it])
             }
         }
-
+        get("/KIDA/metadata/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                call.respond(kida_parsedMetadata[it])
+            }
+        }
         get("/FSK-Web-Model-Repository/metadata/{i}") {
             var curated_parsedMetadata = mutableListOf<JsonNode>()
             call.parameters["i"]?.toInt()?.let {
@@ -461,7 +529,17 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
-
+        get("/KIDA/image/{id}") {
+            call.parameters["id"]?.let { imageId ->
+                try {
+                    val imgFile = imgFiles.first { it.nameWithoutExtension.replace("/","").replace(":","") == imageId.replace("/","").replace(":","") }
+                    call.response.header("Content-Disposition", "inline")
+                    call.respondText(imgFile.readText())
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/FSK-Web-ModelRepository/image/{id}") {
             call.parameters["id"]?.let { imageId ->
                 try {
@@ -504,6 +582,19 @@ fun Application.module(testing: Boolean = false) {
                 try {
                     val modelFile = rakipweb_modelFiles[it]
                     var language = rakipweb_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val model = readModelScript(modelFile, uri)
+                    call.respondText(model)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        get("/KIDA/modelscript/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = kida_modelFiles[it]
+                    var language = kida_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
                     var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
                     val model = readModelScript(modelFile, uri)
                     call.respondText(model)
@@ -560,6 +651,19 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        get("/KIDA/visualizationscript/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = kida_modelFiles[it]
+                    var language = kida_parsedMetadata[it]["generalInformation"]["languageWrittenIn"].asText();
+                    var uri = if (language.startsWith("py",ignoreCase = true)) FSKML.getURIS(1, 0, 12)["py"]!! else FSKML.getURIS(1, 0, 12)["r"]!!
+                    val visualizationScript = readVisualizationScript(modelFile, uri)
+                    call.respondText(visualizationScript)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/readme/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -588,6 +692,18 @@ fun Application.module(testing: Boolean = false) {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val modelFile = rakipweb_modelFiles[it]
+                    var uri = FSKML.getURIS(1, 0, 12)["plain"]!!
+                    val readme = readReadMe(modelFile, uri)
+                    call.respondText(readme)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        get("/KIDA/readme/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = kida_modelFiles[it]
                     var uri = FSKML.getURIS(1, 0, 12)["plain"]!!
                     val readme = readReadMe(modelFile, uri)
                     call.respondText(readme)
@@ -666,6 +782,18 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        get("/KIDA/execute/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
+                            "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+                    call.respondText(svg)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         post("/FSK-Web/execute/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -679,6 +807,18 @@ fun Application.module(testing: Boolean = false) {
             }
         }
         post("/RAKIP-Web/execute/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
+                            "        xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+                    call.respondText(svg)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+        post("/KIDA/execute/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
                     val svg = "<svg version=\"1.1\" baseProfile=\"full\" width=\"300\" height=\"200\"\n" +
@@ -739,7 +879,18 @@ fun Application.module(testing: Boolean = false) {
 
             call.respond(matchingModelIndexes)
         }
+        get("/KIDA/search/{term}") {
+            val matchingModelIndexes = mutableListOf<Int>()
+            call.parameters["term"]?.let { term ->
+                kida_rawMetadata.forEachIndexed { index, modelMetadata ->
+                    if (modelMetadata.contains(term, ignoreCase = true)) {
+                        matchingModelIndexes.add(index)
+                    }
+                }
+            }
 
+            call.respond(matchingModelIndexes)
+        }
         get("/FSK-Web-Model-Repository/search/{term}") {
             val matchingModelIndexes = mutableListOf<Int>()
             call.respond(matchingModelIndexes)
@@ -793,7 +944,22 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+        get("/KIDA/simulations/{i}") {
+            call.parameters["i"]?.toInt()?.let {
+                try {
+                    val modelFile = kida_modelFiles[it]
 
+                    // Load metadata
+                    val metadata = CombineArchive(modelFile).use { it.loadMetadata() }
+                    val parameter = metadata["modelMath"]["parameter"]
+
+                    val simulations = readSimulations(modelFile, parameter)
+                    call.respond(simulations)
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
         get("/FSK-Web-Model-Repository/simulations/{i}") {
             call.parameters["i"]?.toInt()?.let {
                 try {
@@ -839,6 +1005,9 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/executionTime") {
             call.respondRedirect("/landingpage/executionTime")
         }
+        get("/KIDA/executionTime") {
+            call.respondRedirect("/landingpage/executionTime")
+        }
         get("/FSK-Web-Model-Repository/executionTime") {
             call.respondRedirect("/landingpage/executionTime")
         }
@@ -870,6 +1039,9 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/uploadDate") {
             call.respondRedirect("/landingpage/uploadDate")
         }
+        get("/KIDA/uploadDate") {
+            call.respondRedirect("/landingpage/uploadDate")
+        }
         get("/FSK-Web-Model-Repository/uploadDate") {
             call.respondRedirect("/landingpage/uploadDate")
         }
@@ -891,6 +1063,12 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/executionTime/{i}") {
             call.parameters["i"]?.toInt()?.let { index ->
                 val view = getViewRakipWeb(index)
+                view?.let { call.respond(it.durationTime) }
+            }
+        }
+        get("/KIDA/executionTime/{i}") {
+            call.parameters["i"]?.toInt()?.let { index ->
+                val view = getViewKIDA(index)
                 view?.let { call.respond(it.durationTime) }
             }
         }
@@ -918,6 +1096,12 @@ fun Application.module(testing: Boolean = false) {
         get("/RAKIP-Web/uploadDate/{i}") {
             call.parameters["i"]?.toInt()?.let { index ->
                 val view = getViewRakipWeb(index)
+                view?.let { call.respond(it.uploadTime) }
+            }
+        }
+        get("/KIDA/uploadDate/{i}") {
+            call.parameters["i"]?.toInt()?.let { index ->
+                val view = getViewKIDA(index)
                 view?.let { call.respond(it.uploadTime) }
             }
         }
@@ -982,7 +1166,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        // endpoint to add model ID to the service (FSK-Web)
+        // endpoint to add model ID to the service (RAKIP-Web)
         post("/RAKIP-Web/addModel/{id}") {
             call.parameters["id"]?.let { modelId ->
                 try {
@@ -1017,6 +1201,42 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+        post("/KIDA/addModel/{id}") {
+            call.parameters["id"]?.let { modelId ->
+                try {
+                    val appConfiguration = loadConfiguration()
+                    val folder = appConfiguration.getProperty("kida_model_folder")
+                    kida_modelFiles.add(File(folder + "/" + modelId + ".fskx"))
+
+                    // Metadata
+                    var new_model = loadRawMetadata(listOf(File(folder + "/" + modelId + ".fskx"))).toMutableList()
+                    kida_rawMetadata.addAll(new_model)
+                    kida_parsedMetadata.addAll(new_model.map { MAPPER.readTree(it) })
+
+                    // Times
+                    val timesFile = appConfiguration.getProperty("times_csv")
+
+                    val temporaryUploadTimes = mutableMapOf<String, String>()
+                    val temporaryExecutionTimes = mutableMapOf<String, String>()
+                    File(timesFile).readLines().forEach {
+                        val tokens = it.split(",")
+                        val mId = tokens[0]
+                        temporaryUploadTimes[mId] = tokens[2]
+                        temporaryExecutionTimes[mId] = tokens[1]
+                    }
+                    val executionTimes = temporaryExecutionTimes.toMap()
+                    val uploadTimes = temporaryUploadTimes.toMap()
+
+                    addProcessMetadata(kida_rawMetadata, executionTimes, uploadTimes, baseUrl, kida_processedMetadata)
+                    call.respond(HttpStatusCode.Accepted)
+
+                } catch (err: IndexOutOfBoundsException) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
+        }
+
         // endpoint to add model ID to the service (FSK-Web)
         get("/FSK-Web/updateRepository") {
             try {
@@ -1106,6 +1326,9 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+
+
         // endpoint to remove modelf from RAKIP-Web repository
 
         static("/assets") {
