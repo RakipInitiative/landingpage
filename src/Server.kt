@@ -205,7 +205,7 @@ fun Application.module(testing: Boolean = false) {
 
 
         // Model files
-        kida_filesFolder = appConfiguration.getProperty("kida_model_folder")
+        kida_filesFolder = appConfiguration.getProperty("rakipweb_model_folder")
         kida_modelFiles = File(kida_filesFolder).walk().filter { it.isFile && it.extension == "fskx" && it.length() > 1000}.toMutableList()
         kida_modelFiles.sort()
 
@@ -226,7 +226,7 @@ fun Application.module(testing: Boolean = false) {
         rakip_token = appConfiguration.getProperty("rakip_token")
         fskweb_token = appConfiguration.getProperty("fskweb_token")
         renjin_token = appConfiguration.getProperty("renjin_token")
-        kida_token = appConfiguration.getProperty("kida_token")
+        kida_token = appConfiguration.getProperty("kida_token","?repository=KIDA&status=Any")
 
     }
 

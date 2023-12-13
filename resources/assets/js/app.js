@@ -16341,7 +16341,13 @@ var APPTableMT = function (_APPTable) {
 						if (col.formatter != '_list') {
 							data = Array.from(data).join(' ');
 						}
-					} else if (col.field == 'modelType') {
+					}else if (col.field == 'description') {
+                        data = O._getData(modelMetadata, 'generalInformation', 'description');
+
+                    } else if (col.field == 'source') {
+                          data = O._getData(modelMetadata, 'generalInformation', 'source');
+
+                      }else if (col.field == 'modelType') {
 						//data = modelMetadata['modelType'];
 						if(modelMetadata['generalInformation']['modelCategory']){
 						    data = modelMetadata['generalInformation']['modelCategory']['modelClass'] ?
@@ -16387,6 +16393,8 @@ var APPTableMT = function (_APPTable) {
 			// prepare sets for filter
 			O._sets = O._sets || {};
 			O._sets.software = new Set();
+			O._sets.description = new Set();
+			O._sets.source = new Set();
 			O._sets.environment = new Set();
 			O._sets.hazard = new Set();
 			O._sets.modelType = new Set();
@@ -16395,6 +16403,8 @@ var APPTableMT = function (_APPTable) {
 
 				var _modelMetadata = O._metadata[i];
 				var software = O._getData(_modelMetadata, 'generalInformation', 'software');
+				var description = O._getData(_modelMetadata, 'generalInformation', 'description');
+				var source = O._getData(_modelMetadata, 'generalInformation', 'source');
 				var environment = O._getScopeData(_modelMetadata, 'scope', 'product', 'productName');
 				var hazard = O._getScopeData(_modelMetadata, 'scope', 'hazard', 'hazardName');
 				//var modelType = _modelMetadata['modelType'];
@@ -16408,6 +16418,8 @@ var APPTableMT = function (_APPTable) {
 
 				// update sets
 				if (software) O._updateSet('software', software);
+				if (description) O._updateSet('description', description);
+				if (source) O._updateSet('source', source);
 				if (environment) {
 					environment.forEach(function (x) {
 						O._updateSet('environment', x);

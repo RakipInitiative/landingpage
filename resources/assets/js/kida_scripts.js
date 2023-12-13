@@ -31,17 +31,9 @@ var _appVars = {
                              "href": landingpage_home + "KIDA-Model-Repository/"
                            },
                            {
-                             "title": "KIDA Protected Area",
-                             "href": "https://foodrisklabs.bfr.bund.de/overview-of-fsk-web-protected-area-services/"
+                             "title": "KIDA BMEL",
+                             "href": "https://kida-bmel.de/"
                            },
-                           {
-                             "title": "KIDA Details",
-                             "href": "https://foodrisklabs.bfr.bund.de/functional-details/"
-                           },
-                           {
-                              "title": "KIDA Curation Policy",
-                              "href": "https://foodrisklabs.bfr.bund.de/rakip-web-model-repository-curation-and-publication-policy/"
-                          },
                            {
                              "title": "FSK-Lab Software",
                              "href": "https://foodrisklabs.bfr.bund.de/fsk-lab/"
@@ -134,8 +126,8 @@ var _appVars = {
 			},
 			{
 				id 			: 'colEnvironment',
-				label		: 'Environment',
-				field 		: 'environment',
+				label		: 'Description',
+				field 		: 'description',
 				classes 	: {
 					th 			: 'min-300',
 					td 			: 'td-env min-300'
@@ -145,32 +137,15 @@ var _appVars = {
 					tooltip 			: true,
 					select2 			: true,
 					select2SingleRow 	: true,
-					placeholder 		: 'Environment',
+					placeholder 		: 'description',
 					maxSelectable 		: 1
 				},
 				collapsable	: true, // data-toggle-td
 				formatter 	: '_list' // _formatter subroutine
 			},
 			{
-				id 			: 'colHazard',
-				label		: 'Hazard',
-				field 		: 'hazard',
-				classes 	: {
-					th 			: null,
-					td 			: 'td-haz'
-				},
-				sortable 	: true, // sortable
-				facet 		: {
-					tooltip 			: true,
-					select2 			: true,
-					select2SingleRow 	: true,
-					placeholder 		: 'Hazard',
-					maxSelectable 		: 1
-				}
-			},
-			{
 				id 			: 'colType',
-				label		: 'Type',
+				label		: 'Tags',
 				field 		: 'modelType',
 				classes 	: {
 					th 			: null,
@@ -184,19 +159,6 @@ var _appVars = {
 					placeholder 		: 'Type',
 					maxSelectable 		: 1
 				}
-			},
-			{
-				id 			: 'colExecTime',
-				label		: 'Execution Time',
-				field 		: 'executionTime',
-				classes 	: {
-					th 			: null,
-					td 			: null
-				},
-				sortable 	: true, // sortable
-				sorter 		: '_execution', // _sorter subroutine
-				switchable 	: true, // data-switchable
-				formatter 	: '_execution' // _formatter subroutine
 			},
 			{
 				id 			: 'colUploadDate',
